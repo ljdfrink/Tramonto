@@ -45,10 +45,12 @@ void  thermodynamics(char *file_echoinput,int iwrite_screen, int iwrite_files)
     if (L_HSperturbation){
                                                                     /* set up segment densities */
        if (Type_poly == WTC || Type_poly==WJDC || Type_poly==WJDC2 || Type_poly==WJDC3) WTC_thermo_precalc(file_echoinput);   
-                                                                    /* set up bulk WJDC_field and G values */
+
        if (Type_func != NONE)  HS_thermo_precalc(file_echoinput); 
 
        if (Type_attr != NONE ) ATT_thermo_precalc();
+
+                                                                    /* set up bulk WJDC_field and G values */
        if (Type_poly == WJDC || Type_poly==WJDC2 || Type_poly==WJDC3) {
             /* the Scale_fac must be set to zero on the first call since the scaling factor is not used in computation
                of the bulk properties. */

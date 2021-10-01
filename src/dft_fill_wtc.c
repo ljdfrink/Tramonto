@@ -475,9 +475,15 @@ double load_cavity_wtc(int iunk, int loc_inode, int inode_box, int *ijk_box,
   }
   resid_cavity=resid;
 
-  resid_cavity+=resid_and_Jac_sten_fill_sum_Ncomp(THETA_FN_SIG,x,iunk,loc_inode,inode_box,izone,
-                   ijk_box,resid_only_flag,jzone_flag,
-                    &prefactor_cavity_wtc, &resid_rho_bar,&jac_rho_bar);
+  if (izone ==FLAG_BULK){
+     resid=Xi_cav_b[iunk-Phys2Unk_first[CAVWTC]+2];
+     if (resid_only_flag != CALC_RESID_ONLY) dft_linprobmgr_insertrhsvalue(LinProbMgr_manager,iunk,loc_inode,-resid);
+     resid_cavity += resid;
+  }
+  else{
+      resid_cavity+=resid_and_Jac_sten_fill_sum_Ncomp(THETA_FN_SIG,x,iunk,loc_inode,inode_box,izone,
+                       ijk_box,resid_only_flag,jzone_flag,&prefactor_cavity_wtc, &resid_rho_bar,&jac_rho_bar);
+  }
 
   return(resid_cavity);
 }

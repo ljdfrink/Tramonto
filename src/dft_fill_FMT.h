@@ -57,6 +57,10 @@ extern int Nrho_bar_s;
 #define HSRHOBAR       2
 #define NEQ_TYPE       12 
 extern int Phys2Unk_first[NEQ_TYPE];
+#define FLAG_BULK   -888
+extern double Rhobar_b_RTF[10];
+extern double Rhobar_b_LBB[10];
+extern double Rhobar_b[10];
 extern void *LinProbMgr_manager;
 #define CALC_RESID_ONLY  3
 #define INIT_GUESS_FLAG  2

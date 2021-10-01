@@ -92,7 +92,7 @@ double load_euler_lagrange(int iunk,int loc_inode, int inode_box, int *ijk_box, 
       if (iunk==Phys2Unk_first[DENSITY]) first_unk=TRUE;
       if (Type_interface==PHASE_INTERFACE && B2G_node[inode_box]==(int)(0.5*Size_x[Grad_dim]/Esize_x[Grad_dim]) && first_unk){  
         if (Type_poly != WJDC && Type_poly != WJDC2 && Type_poly != WJDC3){
-           resid=fill_constant_density(iunk,icomp,iseg,loc_inode,inode_box,x,resid_only_flag);
+           resid=fill_constrained_density(iunk,icomp,iseg,loc_inode,inode_box,x,resid_only_flag);
            return(resid);
         }
       }
@@ -283,7 +283,7 @@ double fill_bulk_density(int iunk, int icomp, int iseg, int loc_inode, int inode
    return resid;
 }
 /******************************************************************************************/
-double fill_constant_density(int iunk, int icomp, int iseg, int loc_inode, int inode_box, double **x,int resid_only_flag)
+double fill_constrained_density(int iunk, int icomp, int iseg, int loc_inode, int inode_box, double **x,int resid_only_flag)
 {
   double resid,mat_val;
 
@@ -305,7 +305,7 @@ double fill_constant_density(int iunk, int icomp, int iseg, int loc_inode, int i
    return resid;
 }
 /******************************************************************************************/
-double fill_constant_field(int iunk, int icomp, int iseg, int loc_inode, int inode_box, double **x,int resid_only_flag)
+double fill_constrained_field(int iunk, int icomp, int iseg, int loc_inode, int inode_box, double **x,int resid_only_flag)
 {
   double resid,mat_val;
 

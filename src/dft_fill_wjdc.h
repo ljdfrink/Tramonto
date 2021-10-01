@@ -18,6 +18,7 @@
 extern double ***GsumPrefac_GDerivs;
 extern int ***Index_UnkGQ_Gsum;
 #define NCOMP_MAX 6
+#define FLAG_BULK   -888
 extern int Proc;
 extern int Grafted_SegID[NCOMP_MAX];
 extern int ***Bonds;

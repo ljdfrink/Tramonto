@@ -141,6 +141,7 @@ double fill_constant_density_chain(int iunk,int icomp,int iseg,double fac_FIELD,
 #define DENSITY        0
 #define NEQ_TYPE       12 
 extern int Phys2Unk_first[NEQ_TYPE];
+#define FLAG_BULK   -888
 extern double Esize_x[NDIM_MAX];
 extern int Grad_dim;
 extern double Size_x[NDIM_MAX];

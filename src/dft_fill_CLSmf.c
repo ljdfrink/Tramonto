@@ -116,7 +116,6 @@ double resid_and_Jac_sten_fill_sum_Ncomp (int sten_type, double **x, int iunk,
       }
       else index=jcomp;
 
-
       sten = &(Stencil[sten_type][izone][index]);
       sten_offset = sten->Offset;
       sten_weight = sten->Weight;

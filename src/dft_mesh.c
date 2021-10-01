@@ -505,8 +505,9 @@ void control_mesh(FILE *fpecho,char *output_file2,int print_flag, int *update)
      /* set mesh coarsening flag for residual zones */
 
      /*if (Mesh_coarsening !=FALSE || L1D_bc)*/ set_mesh_coarsen_flag();
+
      /* send solver manager information about mesh coarsening */
-      dft_linprobmgr_setcoarsenednodeslist(LinProbMgr_manager, Nnodes_coarse_loc, List_coarse_nodes);
+     dft_linprobmgr_setcoarsenednodeslist(LinProbMgr_manager, Nnodes_coarse_loc, List_coarse_nodes);
 
      /* Linprobmgr can now set up its own numbering scheme, set up unknown-based Maps */
      ierr = dft_linprobmgr_finalizeblockstructure(LinProbMgr_manager);
@@ -2800,6 +2801,7 @@ void set_mesh_coarsen_flag(void)
 
   /* set mesh coarsening flag */
   count=0;count_coarse=0;
+  Nnodes_coarse_loc=0;
 
   ijk[0] = ijk[1] = ijk[2] = 0;
 
@@ -2816,23 +2818,22 @@ void set_mesh_coarsen_flag(void)
 
          if (Mesh_coarsening == BULK_ZONE){
                 Mesh_coarsen_flag[i] = FLAG_BULK;
-                if (B2L_node[i] >=0) count_coarse++;
+                if (B2L_node[i] >=0) List_coarse_nodes[count_coarse++]=B2G_node[i];    
          }
          else if (Mesh_coarsening == PB_ZONE){
                 Mesh_coarsen_flag[i] = FLAG_PBELEC;
-                if (B2L_node[i] >=0) count_coarse++;
+                if (B2L_node[i] >=0) List_coarse_nodes[count_coarse++]=B2G_node[i];  
          }
          else{
                       /* reset to negative flag if residual is not even to be set */
-         coarse_fac = POW_INT(2,Nodes_to_zone[i]);
-         if      (ijk[0]%coarse_fac) Mesh_coarsen_flag[i] = -1;
-         else if (ijk[1]%coarse_fac) Mesh_coarsen_flag[i] = -2;
-         else if (ijk[2]%coarse_fac) Mesh_coarsen_flag[i] = -3;
+            coarse_fac = POW_INT(2,Nodes_to_zone[i]);
+            if      (ijk[0]%coarse_fac) Mesh_coarsen_flag[i] = -1;
+            else if (ijk[1]%coarse_fac) Mesh_coarsen_flag[i] = -2;
+            else if (ijk[2]%coarse_fac) Mesh_coarsen_flag[i] = -3;
+            if (B2L_node[i] >=0) List_coarse_nodes[count_coarse++]=B2G_node[i]; 
          }
-         if (B2L_node[i] >=0 && Mesh_coarsen_flag[i] < 0) List_coarse_nodes[count_coarse++]=B2G_node[i];
-               
       }
-      if (L1D_bc){
+      if (L1D_bc==TRUE){
          if (ijk[Dim_1Dbc]*Esize_x[Dim_1Dbc] <= X_1D_bc+0.00000001 ||
              ijk[Dim_1Dbc]*Esize_x[Dim_1Dbc] >= Size_x[Dim_1Dbc] - (X_1D_bc+0.00000001) ) {
              Mesh_coarsen_flag[i] = FLAG_1DBC;
@@ -2840,7 +2841,7 @@ void set_mesh_coarsen_flag(void)
           }
       }
   }
-  if (L1D_bc){
+  if (L1D_bc==TRUE){
      Nnodes_coarse_loc=count;
      nodes_coarse=gsum_int(count);
      if (Proc==0&&Iwrite_screen==VERBOSE) printf(" %d nodes of %d total will be set to the 1D boundary region\n",nodes_coarse,Nnodes);
@@ -2856,7 +2857,6 @@ void set_mesh_coarsen_flag(void)
     safe_free((void *) &List_coarse_nodes);
     List_coarse_nodes=NULL;
   } 
-
   return;
 
 }

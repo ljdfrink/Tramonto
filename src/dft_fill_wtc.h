@@ -34,6 +34,7 @@ double d2y_dxi2_sq(double sigma_1,double sigma_2,double xi_2,double xi_3);
 #define POW_DOUBLE_INT pow
 #endif
 #define PI    3.141592653589793238462643383279502884197169399375
+#define FLAG_BULK   -888
 extern int Nseg_tot;
 #define THETA_FN_SIG          5
 double load_polyTC_cavityEL(int iunk,int loc_inode,int inode_box,int icomp,int izone,int *ijk_box,double **x,int resid_only_flag);
@@ -89,6 +90,9 @@ double dy_dxi3_cav(double sigma_1,double sigma_2,double xi_2,double xi_3);
 double dy_dxi2_cav(double sigma_1,double sigma_2,double xi_2,double xi_3);
 extern double Sigma_ff[NCOMP_MAX][NCOMP_MAX];
 double y_cav(double sigma_1,double sigma_2,double xi_2,double xi_3);
+extern double Xi_cav_RTF[4];
+extern double Xi_cav_LBB[4];
+extern double Xi_cav_b[4];
 #define CAVWTC         4
 extern int Unk2Comp[NMER_MAX];
 extern int **Bonds_SegAll;

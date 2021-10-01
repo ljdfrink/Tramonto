@@ -302,7 +302,7 @@ double load_Chain_Geqns(int func_type_field,int Njacobian_types, int Njacobian_s
 	int inode_box2,inode2;
 	int iwall,iwall_type;
     double nodepos[3],nodepos2[3],xbound,xbound_lim;
-    double resid_G=0.0,resid,values[4],gint_tmp; 
+    double resid_G=0.0,resid,mat_value,values[4],gint_tmp; 
  /* double mat_val;*/
     double y,ysqrt,dydxi,xi_2,xi_3,xi_2_0,xi_3_0;
 	double y2,ysqrt2;
@@ -326,6 +326,18 @@ double load_Chain_Geqns(int func_type_field,int Njacobian_types, int Njacobian_s
 
     if (Zero_density_TF[inode_box][itype_mer] || Vext[loc_inode][itype_mer] == VEXT_MAX) {
 	resid_G=fill_zero_value(iunk,loc_inode,inode_box,x,resid_only_flag);
+    }
+    else if (izone == FLAG_BULK){       /* Set value for a bulk node */
+       resid = x[iunk][inode_box]-G_WJDC_b[iunk-Phys2Unk_first[G_CHAIN]];
+       resid_G += resid;
+       if (resid_only_flag != CALC_RESID_ONLY) dft_linprobmgr_insertrhsvalue(LinProbMgr_manager,iunk,loc_inode,-resid);
+       if (!resid_only_flag){
+           mat_value=1.0; 
+           if (Iwrite_files==FILES_DEBUG_MATRIX){
+               Array_test[L2G_node[loc_inode]+Solver_Unk[iunk]*Nnodes][B2G_node[inode_box]+Solver_Unk[iunk]*Nnodes]+=mat_value;
+           }
+	   dft_linprobmgr_insertonematrixvalue(LinProbMgr_manager,iunk,loc_inode, iunk, inode_box, mat_value);
+       }
     }
     else {
 		
