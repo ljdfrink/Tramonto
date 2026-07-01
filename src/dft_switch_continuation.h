@@ -19,19 +19,24 @@ void print_cont_variable_archived_plugin(int cont_type,FILE *fp,int Loca_contID)
 #include "Tramonto_ConfigDefs.h"
 extern double Betap_RTF;
 extern double Betap_LBB;
+extern double Betap_RHOSTEP0;       /* Pressure calculated for region of domain defined by Rho_step[0][icomp] */
 extern double Betap;
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Betamu_chain_RTF[NMER_MAX];
 extern double Betamu_chain_LBB[NMER_MAX];
+extern double Betamu_chain_RHOSTEP0[NMER_MAX];
 #define NCOMP_MAX 6
 extern double Betamu_RTF[NCOMP_MAX];
 extern double Betamu_LBB[NCOMP_MAX];
+extern double Betamu_RHOSTEP0[NCOMP_MAX];
 extern double Charge_f[NCOMP_MAX];
 #define PI    3.141592653589793238462643383279502884197169399375
 extern double Rho_seg_RTF[NMER_MAX];
 extern double Rho_seg_LBB[NMER_MAX];
+extern double Rho_seg_RHOSTEP0[NMER_MAX];
 extern double Rho_b_RTF[NCOMP_MAX];
 extern double Rho_b_LBB[NCOMP_MAX];
+extern double Rho_b_RHOSTEP0[NCOMP_MAX];
 extern double Rho_g[NCOMP_MAX];
 extern int Grafted[NCOMP_MAX];
 #define NDIM_MAX  3

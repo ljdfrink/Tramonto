@@ -58,7 +58,7 @@ void read_input_file(FILE *fpinput, FILE *fpecho)
    FILE *fpsurfaces=NULL;
 
    char *yo = "read_input_file";
-   int icomp, jcomp, iwall,iwall_type, idim, ipol,
+   int icomp, jcomp, iwall,iwall_type, idim, ipol,ireact,
        i, izone, j, jwall,new_wall,logical,ncharge, seg, block[NCOMP_MAX][NBLOCK_MAX],
        block_type[NBLOCK_MAX],pol_number, itmp,
        dim_tmp,jmin=0,jmax=0,
@@ -1154,11 +1154,126 @@ void read_input_file(FILE *fpinput, FILE *fpecho)
   if (Type_coul != NONE || Type_pairPot==PAIR_COULOMB_CS || Type_pairPot==PAIR_COULOMB) {
      read_junk(fpinput,fpecho);
      for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+        ChargeRegTF=FALSE;
 	fscanf(fpinput,"%d", &Type_bc_elec[iwall_type]);
 	 fprintf(fpecho,"%d  ",Type_bc_elec[iwall_type]);
         if (Type_bc_elec[iwall_type] != 0) Ipot_wf_c = COULOMB;
+        if (Type_bc_elec[iwall_type]==CHARGE_REGULATED) ChargeRegTF=TRUE;
      }
 
+     /*************************************/
+     /* input charge regulation parameters */
+     /*************************************/
+     if (ChargeRegTF==TRUE){   /* do it this way so we don't break all existing caes */
+        printf("Charge Regulating surfaces turned on\n");
+
+        /* input number of reactions per surface - may be zero */
+        read_junk(fpinput,fpecho);
+        for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+	    fscanf(fpinput,"%d", &Nreact_perSurf[iwall_type]);      
+  	    fprintf(fpecho,"%d  ",Nreact_perSurf[iwall_type]);
+        } 
+
+        /* input the density of reacting sites on the surface (number per area) */
+/*        read_junk(fpinput,fpecho);
+        for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+	    fscanf(fpinput,"%lf", &Density_rxnSites[iwall_type]);
+  	    fprintf(fpecho,"%f  ",Density_rxnSites[iwall_type]);
+        }*/   /* this parameter is not needed separately - it will be read as Elec_param_w with the surfaces instead. */
+
+        /* set the types of reactions associated with this surface - each type requires different implementation */
+        read_junk(fpinput,fpecho);
+        for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+	     fscanf(fpinput,"%d", &Rxn_type[iwall_type]);
+  	     fprintf(fpecho,"%d  ",Rxn_type[iwall_type]);
+        }
+
+
+        /* identify the reaction ID numbers associated with this surface - and their order */
+/*
+        read_junk(fpinput,fpecho);
+        for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+             for (ireact=0; ireact <  Nreact_perSurf[iwall_type]; ++ireact){      
+	        fscanf(fpinput,"%d", &Rxn_ID[iwall_type][ireact]);
+  	        fprintf(fpecho,"%d  ",Rxn_ID[iwall_type][ireact]);
+             }
+        }
+*/
+
+        /* input the fraction of sites on the surface associated with a particular reaction*/
+        read_junk(fpinput,fpecho);
+        for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+             for (ireact=0; ireact <  Nreact_perSurf[iwall_type]; ++ireact){      
+	        fscanf(fpinput,"%lf", &Frac_reactSites[iwall_type][ireact]);
+  	        fprintf(fpecho,"%f  ",Frac_reactSites[iwall_type][ireact]);
+             }
+        }
+
+        /* input the reaction constant associated with each of the reactions */
+        read_junk(fpinput,fpecho);
+        for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+             for (ireact=0; ireact <  Nreact_perSurf[iwall_type]; ++ireact){      
+	        fscanf(fpinput,"%lf", &pK_react[iwall_type][ireact]);
+  	        fprintf(fpecho,"%f  ",pK_react[iwall_type][ireact]);
+                K_react[iwall_type][ireact]=pow(10,-pK_react[iwall_type][ireact]);
+                printf("iwall_type=%d   ireact=%d   pK_react=%f  K_react=%f   alpha_react=%f\n",
+                        iwall_type,ireact,pK_react[iwall_type][ireact],K_react[iwall_type][ireact],log(K_react[iwall_type][ireact]));
+             }
+        }
+
+        /* indicate whether the reaction charges the surface positively or negatively */
+        read_junk(fpinput,fpecho);
+        for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+             for (ireact=0; ireact <  Nreact_perSurf[iwall_type]; ++ireact){      
+	        fscanf(fpinput,"%lf", &DeltaCharge_frwdRxn[iwall_type][ireact]);
+  	        fprintf(fpecho,"%f  ",DeltaCharge_frwdRxn[iwall_type][ireact]);
+             }
+        }
+
+        /* input the number of bulk fluid species involved in the reaction as reactants*/
+        read_junk(fpinput,fpecho);
+        for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+             for (ireact=0; ireact <  Nreact_perSurf[iwall_type]; ++ireact){      
+	        fscanf(fpinput,"%d", &N_fluidCompReact[iwall_type][ireact]);
+  	        fprintf(fpecho,"%d  ",N_fluidCompReact[iwall_type][ireact]);
+             }
+        }
+
+        /* input the bulk fluid species involved in the reaction as reactants*/
+       Fluid_reactComp = (int ***) array_alloc(3, NWALL_MAX_TYPE, NREACT_MAX, NCOMP_MAX, sizeof(int));
+       read_junk(fpinput,fpecho);
+        for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+             for (ireact=0; ireact <  Nreact_perSurf[iwall_type]; ++ireact){      
+                for (icomp=0; icomp <  N_fluidCompReact[iwall_type][ireact]; ++icomp){      
+	           fscanf(fpinput,"%d", &Fluid_reactComp[iwall_type][ireact][icomp]);
+  	           fprintf(fpecho,"%d  ",Fluid_reactComp[iwall_type][ireact][icomp]);
+                }
+             }
+        }
+        /* input the number of bulk fluid species involved in the reaction as products*/
+        read_junk(fpinput,fpecho);
+        for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+             for (ireact=0; ireact <  Nreact_perSurf[iwall_type]; ++ireact){      
+	        fscanf(fpinput,"%d", &N_fluidCompProd[iwall_type][ireact]);
+  	        fprintf(fpecho,"%d  ",N_fluidCompProd[iwall_type][ireact]);
+             }
+        }
+
+        /* input the bulk fluid species involved in the reaction as reactants*/
+        Fluid_prodComp = (int ***) array_alloc(3, NWALL_MAX_TYPE, NREACT_MAX, NCOMP_MAX, sizeof(int));
+        read_junk(fpinput,fpecho);
+        for (iwall_type=0; iwall_type <  Nwall_type; ++iwall_type){
+             for (ireact=0; ireact <  Nreact_perSurf[iwall_type]; ++ireact){      
+                for (icomp=0; icomp <  N_fluidCompProd[iwall_type][ireact]; ++icomp){      
+	           fscanf(fpinput,"%d", &Fluid_prodComp[iwall_type][ireact][icomp]);
+  	           fprintf(fpecho,"%d  ",Fluid_prodComp[iwall_type][ireact][icomp]);
+                }
+             }
+        }
+     }      /* end of ChargeRegTF input*/  
+     
+
+     /* This section sets up local fixed charges - the total charge, the diameter of the charge are required.  */ 
      read_junk(fpinput,fpecho);
      fscanf(fpinput,"%d", &Nlocal_charge);
       fprintf(fpecho,"%d  ",Nlocal_charge);
@@ -1309,8 +1424,9 @@ void read_input_file(FILE *fpinput, FILE *fpecho)
 	fprintf(fpecho,"%d  %d %lf",Iguess,Iguess_fields, random_rho);
 
 
-  if (Iguess != STEP_PROFILE) Nsteps=1;
-  if (Iguess==STEP_PROFILE || (Iguess>=CHOP_RHO && Iguess<= CHOP_RHO_STEP)){
+  if (Iguess != STEP_PROFILE && Iguess != STEP_PROFILE_DROP) Nsteps=1;
+  if (Iguess==STEP_PROFILE || (Iguess>=CHOP_RHO && Iguess<= CHOP_RHO_STEP) || 
+      Iguess==STEP_PROFILE_DROP || Mesh_coarsening==RHOSTEP_ZONE){
       read_junk(fpinput,fpecho);
       fscanf(fpinput,"%d",&Nsteps);
        fprintf(fpecho,"%d   ",Nsteps);
@@ -1319,6 +1435,12 @@ void read_input_file(FILE *fpinput, FILE *fpecho)
       for (i=0; i<Nsteps; ++i){
 	fscanf(fpinput,"%d", &Orientation_step[i]);
 	 fprintf(fpecho,"%d  ",Orientation_step[i]);
+      }
+      if (Iguess==STEP_PROFILE_DROP){
+      for (idim=0;idim<Ndim;idim++){ 
+          fscanf(fpinput,"%lf", &Origin_step[idim]);
+	  fprintf(fpecho,"%lf", Origin_step[idim]);
+      }
       }
 
       read_junk(fpinput,fpecho);
@@ -1337,27 +1459,29 @@ void read_input_file(FILE *fpinput, FILE *fpecho)
 
       read_junk(fpinput,fpecho);
       if (Type_poly==NONE || Ntype_mer == 1){
-         for (icomp=0; icomp<Ncomp; ++icomp){
-             for (i=0; i<Nsteps; ++i){
-                fscanf(fpinput,"%lf", &Rho_step[icomp][i]);
-                fprintf(fpecho,"%f  ",Rho_step[icomp][i]);
+         for (i=0; i<Nsteps; ++i){
+             for (icomp=0; icomp<Ncomp; ++icomp){
+                fscanf(fpinput,"%lf", &Rho_step[i][icomp]);
+                fprintf(fpecho,"%f  ",Rho_step[i][icomp]);
              }
          }
+         if (Mesh_coarsening == RHOSTEP_ZONE) for (icomp=0;icomp<Ncomp; icomp++) Rho_b_RHOSTEP0[icomp]=Rho_step[0][icomp];
       }
       else{
           /*first scan in polymer densities */
-          for (icomp=0; icomp<Npol_comp; icomp++) {
-              for (i=0; i<Nsteps; ++i){ 
-                   fscanf(fpinput,"%lf", &rho_tmp_step[icomp][i]);
-                   fprintf(fpecho,"%f  ",rho_tmp_step[icomp][i]);
+          for (i=0; i<Nsteps; ++i){ 
+              for (icomp=0; icomp<Npol_comp; icomp++) {
+                   fscanf(fpinput,"%lf", &rho_tmp_step[i][icomp]);
+                   fprintf(fpecho,"%f  ",rho_tmp_step[i][icomp]);
                }
           }
-          for (icomp=0; icomp<Ntype_mer; icomp++){
-             for (i=0; i<Nsteps; ++i){
-                 Rho_step[icomp][i] = 0.;
-                 for (j=0; j<Npol_comp; j++)  Rho_step[icomp][i] += (double)Nmer_t[j][icomp]*rho_tmp_step[j][i]/(double)Nmer[j];
+          for (i=0; i<Nsteps; ++i){
+             for (icomp=0; icomp<Ntype_mer; icomp++){
+                 Rho_step[i][icomp] = 0.;
+                 for (j=0; j<Npol_comp; j++)  Rho_step[i][icomp] += (double)Nmer_t[j][icomp]*rho_tmp_step[i][j]/(double)Nmer[j];
              }
           }
+         if (Mesh_coarsening == RHOSTEP_ZONE) for (icomp=0;icomp<Ncomp; icomp++) Rho_b_RHOSTEP0[icomp]=Rho_step[0][icomp];
       }
   }
   else{ for (i=0;i<5;i++) read_junk(fpinput,fpecho); }
@@ -1454,6 +1578,10 @@ void read_input_file(FILE *fpinput, FILE *fpecho)
   fscanf(fpinput,"%d",&Mesh_coarsening);
    fprintf(fpecho,"%d",Mesh_coarsening);
 
+  if (Mesh_coarsening==RHOSTEP_ZONE)
+  fscanf(fpinput,"%lf",&Rmax_drop);
+   fprintf(fpecho,"%f",Rmax_drop);
+
   if (Mesh_coarsening==2 && Lauto_size){
       if(Iwrite_screen != SCREEN_NONE && Iwrite_screen != SCREEN_ERRORS_ONLY) printf("AUTO SIZE FOR BOX :: [Lx,Ly,Lz]=");
       for (idim=0; idim<Ndim; idim++){
@@ -1506,6 +1634,8 @@ void read_input_file(FILE *fpinput, FILE *fpecho)
    fprintf(fpecho,"%lg  ",NL_abs_tol);
   fscanf(fpinput,"%lg", &NL_update_scalingParam);
    fprintf(fpecho,"%lg  ",NL_update_scalingParam);
+  fscanf(fpinput,"%d", &Niter_min_updates);
+   fprintf(fpecho,"%d  ",Niter_min_updates);
 
   read_junk(fpinput,fpecho);
   fscanf(fpinput,"%lg", &NL_rel_tol_picard);

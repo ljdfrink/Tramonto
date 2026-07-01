@@ -62,8 +62,10 @@ int solve_problem(double **x, double **x2)
 
   (void) dft_linprobmgr_importr2c(LinProbMgr_manager, xOwned, x);
 
-  /* If requested, write out initial guess */
-   if (Iwrite_files == FILES_DEBUG && NL_Solver!=PICNEWTON_BUILT_IN && NL_Solver!=PICNEWTON_NOX)  print_profile_box(x,"rho_init.dat");
+  /* If requested, write out initial guess */  /* reset to always print intial guess ... often want to see it */
+   /* if (Iwrite_files == FILES_DEBUG &&*/ 
+  if (NL_Solver==PICNEWTON_BUILT_IN || NL_Solver!=PICNEWTON_NOX)  print_profile_box(x,"rho_init_Newt0.dat");
+  else  print_profile_box(x,"rho_init.dat");
 
   /* Do same for second solution vector when Lbinodal is true */
   if (Lbinodal) {
@@ -210,16 +212,14 @@ int update_solution_new(double** x, double** delta_x, int iter) {
 
   int iunk, ibox, inode, nnodes_loop;
   double updateNorm=0.0, temp,frac_min;
-/*  double updateNorm_unk=0.0,temp_unk;*/
   char *yo = "newupdate solution";
-
 
   if (iter==1) frac_min=0.5;
   else frac_min=1.0;
 
   frac_min=gmin_double(frac_min);
   if (Proc==0 && Iwrite_screen != SCREEN_NONE && Iwrite_screen != SCREEN_ERRORS_ONLY){
-     if (Iwrite_screen == SCREEN_BASIC) printf("\tUpdate percent=%g ",frac_min*100);
+     if (Iwrite_screen == SCREEN_BASIC) printf("\t(new)Update percent=%g ",frac_min*100);
      else printf("\tUpdate Frac = %g percent\n",frac_min*100);
   }
 
@@ -234,7 +234,6 @@ int update_solution_new(double** x, double** delta_x, int iter) {
       for (iunk=0; iunk<Nunk_per_node; iunk++) {
         temp =(frac_min*delta_x[iunk][ibox])/(NL_rel_tol*x[iunk][ibox] + NL_abs_tol);
         updateNorm +=  temp*temp;
-/*        if (iunk==0){ updateNorm_unk +=  temp*temp; }*/
       }
     }
 
@@ -252,7 +251,6 @@ int update_solution_new(double** x, double** delta_x, int iter) {
 
   if (Proc==0 && Iwrite_screen != SCREEN_NONE && Iwrite_screen != SCREEN_ERRORS_ONLY){
     if (Iwrite_screen==SCREEN_BASIC){ 
-/*             printf("\tUnk 0 Weighted norm update vec =  %g", updateNorm_unk);*/
              printf("\tWeighted norm update vec =  %g\n", updateNorm);
     }
     else     printf("\n\t\t Weighted norm of update vector =  %g\n", updateNorm);
@@ -274,60 +272,62 @@ int update_solution(double** x, double** delta_x, int iter) {
 
   int iunk, ibox, inode,inodeG,ijk[3],go_update,idim,nnodes_loop;
   double updateNorm=0.0, temp,frac_min,frac;
-/*  double updateNorm_unk=0.0;
-  int unk_test=7;*/
+  double frac_update_max,frac_allUnks_min, *frac_update;
   char *yo = "newupdate solution";
+
+  frac_update      = (double *) array_alloc (1, Nunk_per_node, sizeof(double));
 
   if (Type_poly==WJDC3 && Grafted_Logical==TRUE) nnodes_loop=Nnodes_box_extra;
   else nnodes_loop=Nnodes_box;
-     
-   /* Certain unknowns - specifically densities and Gs in CMS DFT cannot be less than 0.
-      Here we locate problems, and scale the entire update vector to prevent this from 
-      happening. */
-  frac_min=1.0;
-  for (ibox=0; ibox<nnodes_loop; ibox++) { /* find minimum update fraction in entire domain */
-    for (iunk=0; iunk<Nunk_per_node; iunk++){
-      if ( (Unk2Phys[iunk]==G_CHAIN  && Pol_Sym[iunk-Phys2Unk_first[G_CHAIN]] == -1) ||
-           (Unk2Phys[iunk]==DENSITY && (!(Type_poly==WTC) || (Pol_Sym_Seg[iunk-Phys2Unk_first[DENSITY]] ==-1) )) ){
-         if(x[iunk][ibox]+delta_x[iunk][ibox]<0.0){
-             frac = AZ_MIN(1.0,x[iunk][ibox]/(-delta_x[iunk][ibox]));
-             frac = AZ_MAX(frac,NL_update_scalingParam);
-         } 
-        else{
-             frac=1.0;
-         }
 
-         if (frac<frac_min) frac_min=frac;
-      }
-    }
+  /* set the maximum fractional update based on the interation count as specified in the input file */
+  frac_update_max=1.0;
+  if (iter<=Niter_min_updates) {     /* if constant small updates are desired for some steps */
+      frac_update_max=NL_update_scalingParam;
   }
 
-  frac_min=gmin_double(frac_min);
+   /* Certain unknowns - specifically densities and Gs in  polymer-DFT cannot be less than 0.
+      Here we locate problems, and scale the entire update vector to prevent this from 
+      happening. */
+  frac_allUnks_min=frac_update_max;
+  for (iunk=0; iunk<Nunk_per_node; iunk++){
+     frac_min=frac_update_max;
+     for (ibox=0; ibox<nnodes_loop; ibox++) { /* find minimum update fraction in entire domain */
+        if ( (Unk2Phys[iunk]==G_CHAIN  && Pol_Sym[iunk-Phys2Unk_first[G_CHAIN]] == -1) ||
+           (Unk2Phys[iunk]==DENSITY && (!(Type_poly==WTC) || (Pol_Sym_Seg[iunk-Phys2Unk_first[DENSITY]] ==-1) )) ){
+          if(x[iunk][ibox]+frac_update_max*delta_x[iunk][ibox]<0.0){
+              frac = AZ_MIN(frac_update_max,0.9*x[iunk][ibox]/(-delta_x[iunk][ibox]));
+          } 
+          else frac=frac_update_max;
+
+         if (frac<frac_min) frac_min=frac;
+         if (frac<frac_allUnks_min) frac_allUnks_min=frac;
+        }
+     }
+     /* find the minimum update for this unknown on all processors */
+     frac_min=gmin_double(frac_min); 
+     frac_update[iunk]=frac_min;
+  }
+  frac_allUnks_min=gmin_double(frac_allUnks_min); 
+/*  for (iunk=0; iunk<Nunk_per_node; iunk++) frac_update[iunk]=frac_allUnks_min; debugging - set all unk updates the same*/
+
+
   if (Proc==0 && Iwrite_screen != SCREEN_NONE && Iwrite_screen != SCREEN_ERRORS_ONLY){
-     if (Iwrite_screen == SCREEN_BASIC) printf("\tUpdate percent=%g ",frac_min*100);
+     if (Iwrite_screen == SCREEN_BASIC) printf("\t Update percent(min unk)=%g, ",frac_allUnks_min*100);
      else printf("\tUpdate Frac = %g percent\n",frac_min*100);
   }
   
   for (ibox=0; ibox<nnodes_loop; ibox++) {
 
     /* Increment updateNorm only for owned nodes (inode=-1 for ghosts) */
-    inode = B2L_node[ibox];
-    if (inode != -1) {
+    if (B2L_node[ibox] != -1) {
       for (iunk=0; iunk<Nunk_per_node; iunk++) {
-        temp =(frac_min*delta_x[iunk][ibox])/(NL_rel_tol*x[iunk][ibox] + NL_abs_tol);
+        temp =(frac_update[iunk]*delta_x[iunk][ibox])/(NL_rel_tol*x[iunk][ibox] + NL_abs_tol);
         updateNorm +=  temp*temp;
-/*        if (iunk==unk_test){ 
-             updateNorm_unk +=  temp*temp; 
-             if (iter==8 && B2G_node[ibox]==491) printf("%d  %g %g %g %g %g %g %g\n",B2G_node[ibox],temp,updateNorm_unk,frac_min,NL_rel_tol,NL_abs_tol,delta_x[iunk][ibox],x[iunk][ibox]);
-        }*/
       }
     }
 
-  /* For some cases, we need to be able to keep the solution values at the boundaries constant
-     and set equal to the values that are read in from a file.  Do not update the solution 
-     vector at these points */
-
-
+  /* Set logical go_update to keep solution values at the boundaries constant in certain cases */
     inodeG=B2G_node[ibox]; 
     node_to_ijk(inodeG,ijk);
     go_update=TRUE;
@@ -336,45 +336,24 @@ int update_solution(double** x, double** delta_x, int iter) {
           (ijk[idim]==Nodes_x[idim]-1 && Type_bc[idim][1] == LAST_NODE_RESTART)) go_update=FALSE;
     }
    
-    /* Update all solution componenets */
+   /* Now update all solution componenets */
     if (go_update){
-    for (iunk=0; iunk<Nunk_per_node; iunk++){
-
-     /* if (x[iunk][ibox]+frac_min*delta_x[iunk][ibox] <0.0 && */
-      if (x[iunk][ibox]+frac_min*delta_x[iunk][ibox] <1.e-99 && 
-         (  (Unk2Phys[iunk]==DENSITY && (!(Type_poly==WTC) || (Pol_Sym_Seg[iunk-Phys2Unk_first[DENSITY]] ==-1) )) || 
-            (Unk2Phys[iunk]==G_CHAIN && Pol_Sym[iunk-Phys2Unk_first[G_CHAIN]] == -1)                              || 
-            Unk2Phys[iunk]==CMS_FIELD                                                                             || 
-            Unk2Phys[iunk]==WJDC_FIELD                                                                            ||
-            (Unk2Phys[iunk]==BONDWTC  && Pol_Sym[iunk-Phys2Unk_first[BONDWTC]] == -1 )                            || 
-             Unk2Phys[iunk]==CAVWTC)                 
-          ){
-
-            x[iunk][ibox]=0.1*x[iunk][ibox];
+      for (iunk=0; iunk<Nunk_per_node; iunk++){
+         x[iunk][ibox] += frac_update[iunk]*delta_x[iunk][ibox];
       }
-      else if ((iunk==Phys2Unk_first[HSRHOBAR] || iunk==(Phys2Unk_first[CAVWTC]+1)) && 
-              x[iunk][ibox]+frac_min*delta_x[iunk][ibox] > 1.0){
-              x[iunk][ibox]+=0.5*(1.0-x[iunk][ibox]);
-      }
-      else{
-         x[iunk][ibox] += frac_min*delta_x[iunk][ibox];
-      }
-    }
     }
   }
  
   updateNorm = sqrt(gsum_double(updateNorm));
-  /*updateNorm_unk = sqrt(gsum_double(updateNorm_unk));*/
 
   if (Proc==0 && Iwrite_screen != SCREEN_NONE && Iwrite_screen != SCREEN_ERRORS_ONLY){
     if (Iwrite_screen == SCREEN_BASIC){
-/*           printf("\tUnk %d Weighted norm update vec =  %g", unk_test,updateNorm_unk);*/
            printf("\tWeighted norm update vec =  %g\n", updateNorm);
     }
     else    printf("\n\t\tWeighted norm of update vector =  %g\n", updateNorm);
   }
 
-
+  safe_free ((void *) &frac_update);
   if (updateNorm > 1.0) return(FALSE);
   else                  return(TRUE);
 
@@ -582,7 +561,7 @@ void print_resid_norm(int iter)
   dft_linprobmgr_getrhs(LinProbMgr_manager, f);
 
 
-  if(Iwrite_files==FILES_DEBUG) fprintf(fp_resid," iunk j L2G_node[j]   f[iunk][j]  norm\n");
+  if(Iwrite_files==FILES_DEBUG) fprintf(fp_resid," iunk loc_node(j) L2G_node[j]   f[iunk][j]  norm\n");
   for (j=0; j< Nnodes_per_proc; j++) {
     for (iunk=0; iunk<Nunk_per_node; iunk++) {
        l2norm_term=f[iunk][j]*f[iunk][j];

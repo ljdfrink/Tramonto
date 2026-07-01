@@ -17,7 +17,7 @@
 #include "Tramonto_ConfigDefs.h"
 #define NCOMP_MAX 6
 extern double Rho_b[NCOMP_MAX];
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Rho_seg_b[NMER_MAX];
 #define WTC          2
 extern double Rho_b_RTF[NCOMP_MAX];

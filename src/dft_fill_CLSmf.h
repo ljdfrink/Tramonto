@@ -19,7 +19,7 @@ double resid_and_Jac_sten_fill(int sten_type,double **x,int iunk,int junk,int ic
 extern int *B2G_node;
 extern int Nnodes;
 #define NCOMP_MAX 6
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Solver_Unk[3 *NCOMP_MAX+2 *NMER_MAX+NMER_MAX *NMER_MAX+13];
 extern int *L2G_node;
 extern double **Array_test;
@@ -65,7 +65,10 @@ extern int Proc;
 #define SCREEN_NONE       -1 
 extern int Iwrite_screen;
 #define FLAG_PBELEC -777
+#define FLAG_BULK_LBB -886
+#define FLAG_BULK_RTF -887
 #define FLAG_BULK   -888
+#define FLAG_RHOSTEP_ZONE  -555
 int find_jzone(int izone,int inode_box);
 #define FALSE 0
 #if !defined(_CON_CONST_H_)

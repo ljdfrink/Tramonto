@@ -211,21 +211,21 @@ void dftmain(double * engptr)
            safe_free((void *)&Nel_hit2);
      }
      if (Lhard_surf==TRUE && Type_poly==WJDC3 && Grafted_Logical==TRUE){       /* for hard walls graft the chain to the surface as in the Jain paper */
-          for(ipol=0; ipol<Npol_comp; ipol++){
+         /* for(ipol=0; ipol<Npol_comp; ipol++){
              if(Grafted[ipol]){ 
                  sigma_save[Grafted_TypeID[ipol]]=Sigma_ff[Grafted_TypeID[ipol]][Grafted_TypeID[ipol]];
                  Sigma_ff[Grafted_TypeID[ipol]][Grafted_TypeID[ipol]]=0.001;
              }
-          }
+          }*/   /* need to work on case POLYGRAFT1 hard surfaces - stoichiometry doesn't seem right. Should not depend on Rho_B parameter. */
      }
 
      set_up_mesh(file_echoinput,Vext_Filename);
 
 
      if (Lhard_surf && Type_poly==WJDC3 && Grafted_Logical==TRUE){       /* for hard walls graft the chain to the surface as in the Jain paper */
-         for(ipol=0; ipol<Npol_comp; ipol++){
+/*         for(ipol=0; ipol<Npol_comp; ipol++){
              if(Grafted[ipol]) Sigma_ff[Grafted_TypeID[ipol]][Grafted_TypeID[ipol]]=sigma_save[Grafted_TypeID[ipol]];
-          }
+          }*/
      }
 
     /*
@@ -307,7 +307,7 @@ void dftmain(double * engptr)
            if(Iwrite_screen ==SCREEN_VERBOSE) printf("Not computing vext_coulomb due to boundary conditions\n");
          }
      }
-     print_vext(Vext,Vext_Filename);
+     print_vext(Vext,Vext_Filename);    /* always print the external field */
      if (Iwrite_files==FILES_EXTENDED || Iwrite_files==FILES_DEBUG) {
         /*print_vext(Vext,Vext_Filename);*/
         if (Restart_Vext == READ_VEXT_STATIC) print_vext(Vext_static,"dft_vext_static.dat");

@@ -27,7 +27,7 @@ extern int Grafted[NCOMP_MAX];
 #endif
 extern int Grafted_Logical;
 double integrand_WJDCcomp_freen_bulk(int iunk,int inode_box,double **x);
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Betamu_chain[NMER_MAX];
 #define DIFFUSION      6
 #define DIFFUSIVE_INTERFACE 1

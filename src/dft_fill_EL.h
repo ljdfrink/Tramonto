@@ -16,6 +16,7 @@
 #include "dft_hardsphere_lin_prob_mgr_wrapper.h"
 #include "Tramonto_ConfigDefs.h"
 #define NCOMP_MAX 6
+extern int Proc;
 extern double Pol[NCOMP_MAX];
 extern int ***Surf_normal;
 extern int **Nodes_2_boundary_wall;
@@ -28,7 +29,7 @@ extern double Charge_f[NCOMP_MAX];
 extern int Nwall;
 #define DIFFUSION      6
 extern double Betamu[NCOMP_MAX];
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Betamu_seg[NMER_MAX];
 extern double *Deltac_b;
 extern double Betamu_wtc[NMER_MAX];
@@ -60,11 +61,14 @@ extern int LDeBroglie;
 extern double Field_WJDC_b[NMER_MAX];
 extern double Field_WJDC_RTF[NMER_MAX];
 extern double Field_WJDC_LBB[NMER_MAX];
+extern double Field_WJDC_RHOSTEP0[NMER_MAX];
 double fill_constrained_field(int iunk,int icomp,int iseg,int loc_inode,int inode_box,double **x,int resid_only_flag);
 extern double Rho_b_RTF[NCOMP_MAX];
 extern double Rho_b_LBB[NCOMP_MAX];
+extern double Rho_b_RHOSTEP0[NCOMP_MAX];
 extern double Rho_seg_RTF[NMER_MAX];
 extern double Rho_seg_LBB[NMER_MAX];
+extern double Rho_seg_RHOSTEP0[NMER_MAX];
 extern double Rho_b[NCOMP_MAX];
 extern double Rho_seg_b[NMER_MAX];
 extern int Lseg_densities;
@@ -126,8 +130,8 @@ extern int Lconstrain_interface;
 double fill_sym_WTC(int iunk,int iseg,int loc_inode,int inode_box,double **x,int resid_only_flag);
 extern int *Pol_Sym_Seg;
 #define INIT_GUESS_FLAG  2
-double fill_bulk_density(int iunk,int icomp,int iseg,int loc_inode,int inode_box,double **x,int resid_only_flag);
-double fill_bulk_field(int iunk,int icomp,int iseg,int loc_inode,int inode_box,double **x,int resid_only_flag);
+double fill_bulk_density(int iunk,int icomp,int iseg,int loc_inode,int inode_box,int mesh_coarsen_flag_i,double **x,int resid_only_flag);
+double fill_bulk_field(int iunk,int icomp,int iseg,int loc_inode,int inode_box,int mesh_coarsen_flag_i,double **x,int resid_only_flag);
 #define TRUE  1
 #if !defined(_CON_CONST_H_)
 #define _CON_CONST_H_
@@ -135,7 +139,10 @@ double fill_bulk_field(int iunk,int icomp,int iseg,int loc_inode,int inode_box,d
 #if !defined(TRUE) && !defined(_CON_CONST_H_)
 #define TRUE  1
 #endif
+#define FLAG_BULK_LBB -886
+#define FLAG_BULK_RTF -887
 #define FLAG_BULK   -888
+#define FLAG_RHOSTEP_ZONE  -555
 #define FALSE 0
 #if !defined(FALSE) && !defined(_CON_CONST_H_)
 #define FALSE 0

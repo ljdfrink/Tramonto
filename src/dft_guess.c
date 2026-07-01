@@ -70,7 +70,10 @@ void set_initial_guess (int guess_type, double** xOwned)
        start_no_info = FALSE;
        guess_restart_from_files(start_no_info,guess_type,xInBox);  
        translate_xInBox_to_xOwned(xInBox,xOwned);
-
+       if (Mesh_coarsening == BULK_ZONE && Type_interface != UNIFORM_INTERFACE) {
+              adjust_bulkzone_flags(xInBox);
+              /*reset_load_balance();*/
+       }
   } 
   else start_no_info = TRUE;
 
@@ -203,3 +206,45 @@ void translate_xInBox_to_xOwned(double **xInBox,double **xOwned)
    return;
 }
 /********************************************************************************************************/
+/* adjust_bulkzone_flags(): adjust the arrays Mesh_coarsen_flag[ibox] and Nodes_to_zone[ibox]
+   to allow for cases where there are two bulk fluids that may be constant with different values 
+   in different regions as in a 2-phase boundary or a diffusive system with 2 constant mixed regions. */
+void adjust_bulkzone_flags(double **xInBox){
+      int ibox,test_LBB,test_RTF,iunk;
+      int count_zone0=0, count_bulkLBB=0, count_bulkRTF=0;
+
+      for (ibox=0;ibox<Nnodes_box;ibox++){
+          if (Mesh_coarsen_flag[ibox]==FLAG_BULK){
+             test_LBB=TRUE; test_RTF=TRUE;
+             for (iunk=0; iunk<Ncomp; iunk++) { /* test is only based on densities */
+                if (xInBox[iunk][ibox]>1.e-10 && fabs(xInBox[iunk][ibox]-Rho_b_LBB[iunk])/Rho_b_LBB[iunk]<1.e-6) test_LBB=FALSE;
+                if (xInBox[iunk][ibox]>1.e-10 && fabs(xInBox[iunk][ibox]-Rho_b_RTF[iunk])/Rho_b_RTF[iunk]<1.e-6) test_RTF=FALSE;
+             }
+
+        /* reset the Mesh_coarsen_flag and Nodes_to_zone depending on the observed densities */
+             if (test_LBB ==FALSE && test_RTF ==FALSE){ /* need to compute this node properly */
+                  Mesh_coarsen_flag[ibox]=0;    
+                  Nodes_to_zone[ibox]=0;   
+                  count_zone0++;
+             }
+             else{
+                 if (test_LBB==TRUE){
+                      Mesh_coarsen_flag[ibox]=FLAG_BULK_LBB;
+                      count_bulkLBB++;
+                 }
+                 else if (test_RTF ==TRUE){
+                      Mesh_coarsen_flag[ibox]=FLAG_BULK_RTF;
+                      count_bulkRTF++;
+                 }
+             }
+          }
+      }
+      printf("Proc=%d adjust for 2 bulk zones: \t Nnodes reset to zone0 = %d : Nnodes_bulk_LBB =%d : Nodes_bulk_RTF=%d\n",
+                Proc,count_zone0,count_bulkLBB,count_bulkRTF);
+      return;
+}
+/********************************************************************************************************/
+/* reset_load_balance(): when the bulkzone flags are reset for a complex 2-phase or diffusive interface,
+   the load balance may need to be reset. 
+void reset_load_balance(){
+} */

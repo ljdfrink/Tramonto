@@ -16,9 +16,15 @@
 #include "dft_hardsphere_lin_prob_mgr_wrapper.h"
 #include "Tramonto_ConfigDefs.h"
 #define NZONE_MAX  10 
+#define RHOSTEP_ZONE 3 
 extern int Num_Proc;
 #define NWALL_MAX_TYPE 20 
 #define NWALL_MAX 600 
+#define NREACT_MAX 10
+/* These are choices for reaction types at surfaces */
+#define CHARGEREG1_SURFDENS 0
+#define CHARGEREG1_POT      1
+#define CHARGEREG2_SURFDENS 2  /* Chan Model */
 void error_check(void);
 #define REFLECT              2
 #define LAST_NODE            3
@@ -59,6 +65,7 @@ extern int L_Schur;
 extern int Load_Bal_Flag;
 extern double NL_abs_tol_picard,NL_rel_tol_picard;
 extern double NL_update_scalingParam;
+extern int Niter_min_updates;
 extern double NL_abs_tol,NL_rel_tol;
 #define CALC_ALL_FIELDS   1
 #define PICARD_BUILT_IN       2
@@ -80,6 +87,7 @@ extern int Coarser_jac;
 #define SCREEN_ERRORS_ONLY  0 
 extern int Mesh_coarsening;
 extern double Rmax_zone[5];
+extern double Rmax_drop;
 extern int Nzone;
 #define FILES_DEBUG_MATRIX 3 
 #define VERBOSE_MATRIX    5 
@@ -118,7 +126,7 @@ extern int Nmissing_densities;
 #define RESTART_FEWERCOMP  4
 extern int Restart;
 #define NSTEPS_MAX 10
-extern double Rho_step[NCOMP_MAX][NSTEPS_MAX];
+extern double Rho_step[NSTEPS_MAX][NCOMP_MAX];
 extern double Xend_step[NSTEPS_MAX];
 extern double Xstart_step[NSTEPS_MAX];
 extern int Orientation_step[NSTEPS_MAX];
@@ -126,6 +134,7 @@ extern int Orientation_step[NSTEPS_MAX];
 #define CHOP_RHO         3
 extern int Nsteps;
 #define STEP_PROFILE     2
+#define STEP_PROFILE_DROP     7
 extern double random_rho;
 extern int Iguess_fields;
 extern int Iguess;
@@ -152,11 +161,28 @@ extern int Type_dielec;
 extern int Charge_type_local;
 extern int Charge_type_atoms;
 #define ATOMIC_CHARGE    3
+#define CHARGE_REGULATED 4
 extern double **Charge_x;
 extern double *Charge_Diam;
 extern double *Charge;
 extern int Nlocal_charge;
 extern int Type_bc_elec[NWALL_MAX_TYPE];
+
+extern int ChargeRegTF; 
+extern int Nreact_perSurf[NWALL_MAX_TYPE]; 
+/*extern double Density_rxnSites[NWALL_MAX_TYPE]; */
+extern int Rxn_ID[NWALL_MAX_TYPE][NREACT_MAX]; 
+extern int Rxn_type[NWALL_MAX_TYPE];
+extern double Frac_reactSites[NWALL_MAX_TYPE][NREACT_MAX]; /* The fraction of sites associated with a certain reaction on a given surface */
+extern double pK_react[NWALL_MAX_TYPE][NREACT_MAX]; /* The equilibrium constant associated with each reaction at a given surface */
+extern double K_react[NWALL_MAX_TYPE][NREACT_MAX]; /* The equilibrium constant associated with each reaction at a given surface */
+extern double DeltaCharge_frwdRxn[NWALL_MAX_TYPE][NREACT_MAX]; /* The change in surface site charge for each reaction - defined in the forward direction */
+extern int N_fluidCompReact[NWALL_MAX_TYPE][NREACT_MAX]; /* The number of fluid components infolved in each reaction */
+extern int N_fluidCompProd[NWALL_MAX_TYPE][NREACT_MAX]; /* The number of fluid components infolved in each reaction */
+extern int ***Fluid_reactComp; /* The fluid components reacting with a surface in a given surface reaction */
+extern int ***Fluid_prodComp; /* The fluid components reacting with a surface in a given surface reaction */
+
+
 extern int Ipot_wf_c;
 extern double X_const_mu;
 extern double Elec_pot_RTF;
@@ -165,6 +191,7 @@ extern double Elec_pot_LBB;
 extern double Rho_b_RTF[NCOMP_MAX];
 extern double Rho_b_LBB[NCOMP_MAX];
 extern double Rho_b[NCOMP_MAX];
+extern double Rho_b_RHOSTEP0[NCOMP_MAX];
 extern int Lconstrain_interface;
 extern int Grad_dim;
 extern double **Vext_membrane;
@@ -193,7 +220,7 @@ extern int Grafted_SegID[NCOMP_MAX];
 extern int Grafted[NCOMP_MAX];
 #define NBLOCK_MAX   20 
 extern int Poly_to_Type[NCOMP_MAX][NBLOCK_MAX];
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int SegChain2SegAll[NCOMP_MAX][NMER_MAX];
 extern int Type_mer[NCOMP_MAX][NMER_MAX];
 extern int SegType_per_block[NCOMP_MAX][NBLOCK_MAX];
@@ -322,6 +349,7 @@ extern int Type_func;
 extern int Type_bc[NDIM_MAX][2];
 extern double Esize_x[NDIM_MAX];
 extern double Size_x[NDIM_MAX];
+extern double Origin_step[NDIM_MAX];
 extern int Ndim;
 extern double VEXT_MAX;
 extern double Dielec_ref;

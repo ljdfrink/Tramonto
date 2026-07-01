@@ -19,14 +19,18 @@ void dphi_drb_bulk(double *rhobar,double *dphi_drb);
 #include "dft_poly_lin_prob_mgr_wrapper.h"
 #include "dft_hardsphere_lin_prob_mgr_wrapper.h"
 #include "Tramonto_ConfigDefs.h"
+extern int Mesh_coarsening;
+#define RHOSTEP_ZONE 3
 #define NCOMP_MAX 6
 extern double Rho_b[NCOMP_MAX];
 extern double Rho_b_RTF[NCOMP_MAX];
 extern double Rho_b_LBB[NCOMP_MAX];
+extern double Rho_b_RHOSTEP0[NCOMP_MAX];
 #define UNIFORM_INTERFACE  0
 extern int Type_interface;
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Rho_seg_b[NMER_MAX];
+extern double Rho_seg_RHOSTEP0[NMER_MAX];
 void rhobar_icomp(double rho,int icomp,double *rhobar);
 extern int Icomp_to_polID[NCOMP_MAX];
 extern int Grafted[NCOMP_MAX];
@@ -36,9 +40,11 @@ extern int Nseg_tot;
 extern int Lseg_densities;
 extern double Dphi_Drhobar_RTF[10];
 extern double Dphi_Drhobar_LBB[10];
+extern double Dphi_Drhobar_RHOSTEP0[10];
 extern double Dphi_Drhobar_b[10];
 extern double Rhobar_b_RTF[10];
 extern double Rhobar_b_LBB[10];
+extern double Rhobar_b_RHOSTEP0[10];
 extern double Rhobar_b[10];
 extern int Nrho_bar;
 #define FALSE 0

@@ -16,7 +16,7 @@
 #include "dft_hardsphere_lin_prob_mgr_wrapper.h"
 #include "Tramonto_ConfigDefs.h"
 #define NCOMP_MAX 6
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int SegChain2SegAll[NCOMP_MAX][NMER_MAX];
 extern int *Unk_to_Bond;
 extern int ***Bonds;
@@ -24,6 +24,7 @@ extern int *Unk_to_Poly;
 extern int *Unk_to_Seg;
 extern double BondWTC_RTF[NMER_MAX *NMER_MAX];
 extern double BondWTC_LBB[NMER_MAX *NMER_MAX];
+extern double BondWTC_RHOSTEP0[NMER_MAX *NMER_MAX];
 #define NO_BOND_PAIR -962.0
 extern double BondWTC_b[NMER_MAX *NMER_MAX];
 extern int Nbonds;
@@ -36,6 +37,7 @@ extern int Nbonds;
 #endif
 extern double Xi_cav_RTF[4];
 extern double Xi_cav_LBB[4];
+extern double Xi_cav_RHOSTEP0[4];
 extern double Xi_cav_b[4];
 #define TRUE  1
 #if !defined(_CON_CONST_H_)
@@ -90,12 +92,14 @@ extern double Rho_b_RTF[NCOMP_MAX];
 #define NBLOCK_MAX   20 
 extern int Nmer_t_total[NBLOCK_MAX];
 extern double Rho_b_LBB[NCOMP_MAX];
+extern double Rho_b_RHOSTEP0[NCOMP_MAX];
 #define UNIFORM_INTERFACE  0
 extern int Type_interface;
 extern int Unk2Comp[NMER_MAX];
 extern double Rho_seg_b[NMER_MAX];
 extern double Rho_seg_RTF[NMER_MAX];
 extern double Rho_seg_LBB[NMER_MAX];
+extern double Rho_seg_RHOSTEP0[NMER_MAX];
 extern int Nseg_tot;
 void WTC_overlap();
 void WTC_thermo_precalc(char *file_echoinput);

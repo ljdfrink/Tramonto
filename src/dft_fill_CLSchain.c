@@ -314,6 +314,7 @@ double load_Chain_Geqns(int func_type_field,int Njacobian_types, int Njacobian_s
     bond_num = Unk_to_Bond[unk_GQ];
     itype_mer = Type_mer[pol_num][seg_num];                   /*itype_mer=icomp*/
 
+
      /* from iunk and the bond number find the jseg to which we are looking */
 
     jseg = Bonds[pol_num][seg_num][bond_num];
@@ -327,8 +328,12 @@ double load_Chain_Geqns(int func_type_field,int Njacobian_types, int Njacobian_s
     if (Zero_density_TF[inode_box][itype_mer] || Vext[loc_inode][itype_mer] == VEXT_MAX) {
 	resid_G=fill_zero_value(iunk,loc_inode,inode_box,x,resid_only_flag);
     }
-    else if (izone == FLAG_BULK){       /* Set value for a bulk node */
-       resid = x[iunk][inode_box]-G_WJDC_b[iunk-Phys2Unk_first[G_CHAIN]];
+    else if (izone == FLAG_BULK || izone ==FLAG_BULK_LBB 
+             || izone ==FLAG_BULK_RTF || izone==FLAG_RHOSTEP_ZONE){       /* Set value for a bulk node */
+       if (izone == FLAG_BULK) resid = x[iunk][inode_box]-G_WJDC_b[iunk-Phys2Unk_first[G_CHAIN]];
+       else if (izone == FLAG_BULK_LBB) resid = x[iunk][inode_box]-G_WJDC_LBB[iunk-Phys2Unk_first[G_CHAIN]];
+       else if (izone == FLAG_BULK_RTF) resid = x[iunk][inode_box]-G_WJDC_RTF[iunk-Phys2Unk_first[G_CHAIN]];
+       else if (izone == FLAG_RHOSTEP_ZONE) resid = x[iunk][inode_box]-G_WJDC_RHOSTEP0[iunk-Phys2Unk_first[G_CHAIN]];
        resid_G += resid;
        if (resid_only_flag != CALC_RESID_ONLY) dft_linprobmgr_insertrhsvalue(LinProbMgr_manager,iunk,loc_inode,-resid);
        if (!resid_only_flag){
@@ -490,7 +495,7 @@ double load_Chain_Geqns(int func_type_field,int Njacobian_types, int Njacobian_s
     return(resid_G);
 }   
 /****************************************************************************/
-/* G eqtns for SCF theory--very similar to CMS */
+/* G eqns for SCF theory--very similar to CMS */
 /* currently implementing only for polymer brushes grafted to the x=0 plane */
 double load_Chain_Geqns_SCF(int func_type_field,int Njacobian_types, int Njacobian_sums,
        void (*funcArray_Jac[3])(int,int,int,int,int,int,int,int,int *,double,double **),

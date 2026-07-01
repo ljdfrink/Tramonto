@@ -23,6 +23,7 @@ extern double Rhobar_b[10];
 extern double Size_x[NDIM_MAX];
 extern double Rhobar_b_RTF[10];
 extern double Rhobar_b_LBB[10];
+extern double Rhobar_b_RHOSTEP0[10];
 extern int Grad_dim;
 extern double Esize_x[NDIM_MAX];
 void node_to_ijk(int node,int *ijk);

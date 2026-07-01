@@ -15,14 +15,41 @@
 #include "dft_poly_lin_prob_mgr_wrapper.h"
 #include "dft_hardsphere_lin_prob_mgr_wrapper.h"
 #include "Tramonto_ConfigDefs.h"
+#define TRUE  1
 #define NDIM_MAX  3
+#define NWALL_MAX_TYPE 20
+#define NCOMP_MAX 6
 extern double Esize_x[NDIM_MAX];
 int offset_to_node_box(int *ijk_box,int *offset,int *reflect_flag);
 void node_box_to_ijk_box(int node_box,int *ijk_box);
 extern double Area_surf_el[3];
 extern int ***Surf_normal;
 extern int **Nelems_S;
+#define NONE       -1
 #define CONST_POTENTIAL  1
+#define CONST_CHARGE     2
+#define CHARGE_REGULATED 4
+/* These are choices for reaction types at surfaces */
+#define CHARGEREG1_SURFDENS 0
+#define CHARGEREG1_POT      1
+#define CHARGEREG2_SURFDENS 2  /* Chan Model */
+#define NREACT_MAX 10
+extern int ChargeRegTF;
+extern int Nreact_perSurf[NWALL_MAX_TYPE];
+extern double Density_rxnSites[NWALL_MAX_TYPE];
+extern double **Charge_w_sum_els;
+extern int Rxn_ID[NWALL_MAX_TYPE][NREACT_MAX];
+extern int Rxn_type[NWALL_MAX_TYPE];
+extern double Frac_reactSites[NWALL_MAX_TYPE][NREACT_MAX];
+extern double K_react[NWALL_MAX_TYPE][NREACT_MAX];
+extern double DeltaCharge_frwdRxn[NWALL_MAX_TYPE][NREACT_MAX];
+extern int N_fluidCompReact[NWALL_MAX_TYPE][NREACT_MAX];
+extern int N_fluidCompProd[NWALL_MAX_TYPE][NREACT_MAX];
+extern int ***Fluid_reactComp;
+extern int ***Fluid_prodComp;
+extern double  Sigma_ff[NCOMP_MAX][NCOMP_MAX];
+extern int     Type_func;
+
 #define NWALL_MAX 600 
 extern int WallType[NWALL_MAX];
 #define NWALL_MAX_TYPE 20 
@@ -30,6 +57,7 @@ extern int Type_bc_elec[NWALL_MAX_TYPE];
 extern int Nlists_HW;
 extern int *B2L_node;
 double integrand_surface_charge(int iunk,int inode_box,int iwall,double **x);
+double integrand_surface_chargeOLD(int iunk,int inode_box,int iwall,double **x);
 #define PI    3.141592653589793238462643383279502884197169399375
 extern double Temp_elec;
 extern int Nodes_x[NDIM_MAX];
@@ -41,7 +69,7 @@ extern double *Deltac_b;
 #define NCOMP_MAX 6
 extern double Rho_b[NCOMP_MAX];
 extern double Rho_b_RTF[NCOMP_MAX];
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Rho_seg_b[NMER_MAX];
 extern double Rho_seg_RTF[NMER_MAX];
 #define UNIFORM_INTERFACE  0

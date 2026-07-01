@@ -51,7 +51,7 @@ extern int Nodes_x[NDIM_MAX];
 #if !defined(FALSE) && !defined(_CON_CONST_H_)
 #define FALSE 0
 #endif
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Betamu_chain[NMER_MAX];
 #define DIFFUSIVE_INTERFACE 1
 extern int Type_interface;

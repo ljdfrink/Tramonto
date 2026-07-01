@@ -68,9 +68,15 @@ double fill_resid_and_matrix (double **x, struct RB_Struct *dphi_drb, int iter, 
       for (i=0;i<Nunk_per_node*Nnodes;i++){
           for (j=0;j<Nunk_per_node*Nnodes;j++){ Array_test[i][j]=0.0; }}
   }
+ 
 
   /* for debugging print out profiles on each iteration */
-  if (Iwrite_files==FILES_DEBUG) print_profile_box(x, "dens_iter.dat");
+  if (Iwrite_files==FILES_DEBUG){
+     sprintf(filename,"dens_iter%0d.dat",iter);
+     print_profile_box(x, filename);
+   }
+
+/*  if (Iwrite_files==FILES_DEBUG) print_profile_box(x, "dens_iter.dat");*/
 
   if (unk_flag == NODAL_FLAG){
       iunk_start = 0;
@@ -109,7 +115,7 @@ double fill_resid_and_matrix (double **x, struct RB_Struct *dphi_drb, int iter, 
 	if(Type_poly==WJDC3 && Grafted_Logical==TRUE){ calc_Gsum_new(x); }
 		
 		/* Load residuals and matrix */
-    for (iunk=iunk_start; iunk<iunk_end; iunk++) resid_per_unk[iunk]=0.0;
+  for (iunk=iunk_start; iunk<iunk_end; iunk++) resid_per_unk[iunk]=0.0;
 
   for (loc_inode=0; loc_inode<Nnodes_per_proc; loc_inode++) {
 
@@ -125,8 +131,11 @@ double fill_resid_and_matrix (double **x, struct RB_Struct *dphi_drb, int iter, 
       if (mesh_coarsen_flag_i == FLAG_1DBC) load_coarse_node_1dim(loc_inode,inode_box,ijk_box,iunk,x,resid_only_flag);
 
       else if (mesh_coarsen_flag_i < 0 && 
-               mesh_coarsen_flag_i != FLAG_BULK && 
-               mesh_coarsen_flag_i != FLAG_PBELEC) load_coarse_node_Ndim(loc_inode,inode_box,iunk,x,resid_only_flag);
+               mesh_coarsen_flag_i != FLAG_BULK && mesh_coarsen_flag_i != FLAG_BULK_LBB && 
+               mesh_coarsen_flag_i != FLAG_BULK_RTF && mesh_coarsen_flag_i != FLAG_RHOSTEP_ZONE &&
+               mesh_coarsen_flag_i != FLAG_PBELEC) {
+               load_coarse_node_Ndim(loc_inode,inode_box,iunk,x,resid_only_flag);
+               }
 
       else{
           /*switch_constmatrix=FALSE;
@@ -146,7 +155,6 @@ if (iunk==0 && fabs(resid_term >1.e-8)) {
       }
 
      /* print for debugging purposes call this print routine */ 
-/*Iwrite_screen=SCREEN_DEBUG_RESID;*/
        if (Iwrite_screen==SCREEN_DEBUG_RESID)  print_residuals(loc_inode,iunk,resid_unk);
 
     } /* end of loop over # of unknowns per node */

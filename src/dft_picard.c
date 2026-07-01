@@ -58,8 +58,8 @@ int solve_problem_picard(double **x, double **x2)
   set_initial_guess(Iguess, xOwned);
   (void) dft_linprobmgr_importr2c(LinProbMgr_manager, xOwned, x);
 
-  /* If requested, write out initial guess */
-   if (Iwrite_files == FILES_DEBUG) print_profile_box(x,"rho_init.dat");
+  /* If requested, write out initial guess */  /*reset to always do this */
+   /*if (Iwrite_files == FILES_DEBUG)*/ print_profile_box(x,"rho_init.dat");
 
   /* Do same for second solution vector when Lbinodal is true */
   if (Lbinodal) {

@@ -17,6 +17,8 @@
 #include "Tramonto_ConfigDefs.h"
 extern int **Poly_to_Unk_SegAll;
 extern int *Nbonds_SegAll;
+extern int Mesh_coarsening;
+#define RHOSTEP_ZONE 3
 #define NCOMP_MAX 6
 extern int Icomp_to_polID[NCOMP_MAX];
 #define VERBOSE      3 
@@ -29,7 +31,7 @@ extern int ***Poly_to_Unk;
 extern int **Nbond;
 extern int ***Bonds;
 extern int *Unk_to_Bond;
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int SegChain2SegAll[NCOMP_MAX][NMER_MAX];
 extern int *Unk_to_Seg;
 extern int *Unk_to_Poly;
@@ -80,11 +82,17 @@ extern double Rho_seg_RTF[NMER_MAX];
 extern double Rho_b_RTF[NCOMP_MAX];
 extern double Dphi_Drhobar_RTF[10];
 extern double G_WJDC_LBB[NMER_MAX *NBOND_MAX];
+extern double G_WJDC_RHOSTEP0[NMER_MAX *NBOND_MAX];
 extern double Field_WJDC_LBB[NMER_MAX];
+extern double Field_WJDC_RHOSTEP0[NMER_MAX];
 extern double Xi_cav_LBB[4];
+extern double Xi_cav_RHOSTEP0[4];
 extern double Rho_seg_LBB[NMER_MAX];
+extern double Rho_seg_RHOSTEP0[NMER_MAX];
 extern double Rho_b_LBB[NCOMP_MAX];
+extern double Rho_b_RHOSTEP0[NCOMP_MAX];
 extern double Dphi_Drhobar_LBB[10];
+extern double Dphi_Drhobar_RHOSTEP0[10];
 extern double G_WJDC_b[NMER_MAX *NBOND_MAX];
 extern double Field_WJDC_b[NMER_MAX];
 extern double Xi_cav_b[4];

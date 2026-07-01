@@ -18,7 +18,7 @@
 extern int Physics_scaling;
 #define NCOMP_MAX 6
 extern double Betamu_id[NCOMP_MAX];
-#define NMER_MAX     200
+#define NMER_MAX     300
 #define NBOND_MAX 4
 extern double G_WJDC_b[NMER_MAX *NBOND_MAX];
 extern double Field_WJDC_b[NMER_MAX];
@@ -36,10 +36,16 @@ extern int Grafted[NCOMP_MAX];
 #if !defined(FALSE) && !defined(_CON_CONST_H_)
 #define FALSE 0
 #endif
+extern int Mesh_coarsening;
+#define RHOSTEP_ZONE 3
+extern double Xi_cav_RHOSTEP0[4];
+
 extern int Grafted_Logical;
 extern double Betamu_wtc_LBB[NMER_MAX];
+extern double Betamu_wtc_RHOSTEP0[NMER_MAX];
 extern double Betamu_seg[NMER_MAX];
 extern double Betamu_seg_LBB[NMER_MAX];
+extern double Betamu_seg_RHOSTEP0[NMER_MAX];
 extern int Nseg_tot;
 void chempot_WTC(double *rho_seg,double *betamu,double *xi_cav);
 extern double Betamu[NCOMP_MAX];
@@ -55,14 +61,18 @@ extern double Betamu_hs_ex[NCOMP_MAX];
 void chempot_FMT_hs(double *dphi_drhobar);
 extern double Betamu_RTF[NCOMP_MAX];
 extern double Betamu_LBB[NCOMP_MAX];
+extern double Betamu_RHOSTEP0[NCOMP_MAX];
 void chempot_ideal_gas(double *rho,double *betamu);
 extern double Betamu_chain[NMER_MAX];
 extern double G_WJDC_RTF[NMER_MAX *NBOND_MAX];
 extern double Field_WJDC_RTF[NMER_MAX];
 extern double Betamu_chain_RTF[NMER_MAX];
 extern double G_WJDC_LBB[NMER_MAX *NBOND_MAX];
+extern double G_WJDC_RHOSTEP0[NMER_MAX *NBOND_MAX];
 extern double Field_WJDC_LBB[NMER_MAX];
+extern double Field_WJDC_RHOSTEP0[NMER_MAX];
 extern double Betamu_chain_LBB[NMER_MAX];
+extern double Betamu_chain_RHOSTEP0[NMER_MAX];
 void chempot_chain_wjdc(double *rho,double *betamu_chain,double *field_WJDC,double *g_WJDC);
 extern double Xi_cav_b[4];
 #define NO_SCREEN    4 
@@ -87,19 +97,26 @@ double pressure_att(double *rho);
 extern double Dphi_Drhobar_RTF[10];
 extern double Rhobar_b_RTF[10];
 extern double Dphi_Drhobar_LBB[10];
+extern double Dphi_Drhobar_RHOSTEP0[10];
 extern double Rhobar_b_LBB[10];
+extern double Rhobar_b_RHOSTEP0[10];
 double pressure_FMT_hs(double *rhobar,double *dphi_drhobar);
 extern double Rho_b_RTF[NCOMP_MAX];
 extern double Rho_b_LBB[NCOMP_MAX];
+extern double Rho_b_RHOSTEP0[NCOMP_MAX];
 extern double Rho_seg_RTF[NMER_MAX];
 extern double Betap_RTF;
 extern double Rho_seg_LBB[NMER_MAX];
+extern double Rho_seg_RHOSTEP0[NMER_MAX];
 double pressure_ideal_gas(double *rho);
 extern double Betap_LBB;
+extern double Betap_RHOSTEP0;       /* Pressure calculated for region of domain defined by Rho_step[0][icomp] */
 extern int Lseg_densities;
 #define UNIFORM_INTERFACE  0
 extern int Type_interface;
 void calc_pressure(char *file_echoinput,int iwrite_screen,int iwrite_files);
+double this_pressure(int,double *, double *, double *, double *);
+void calc_pressure_old(char *file_echoinput,int iwrite_screen,int iwrite_files);
 void calc_chempot(char *file_echoinput,int iwrite_screen,int iwrite_files);
 void WJDC_thermo_precalc(char *file_echoinput);
 extern double Scale_fac_WJDC[NCOMP_MAX][NCOMP_MAX];

@@ -49,6 +49,7 @@ void flag_wall_el(int inode,int ilist,int iwall,int iel_box,int **L_wall,int **n
 #define NCOMP_MAX 6
 extern double Sigma_ff[NCOMP_MAX][NCOMP_MAX];
 extern int Lhard_surf;
+extern int Need_Lists;
 #define NWALL_MAX 600 
 extern int Lwedge_cutout[NWALL_MAX];
 #define NWALL_MAX_TYPE 20 

@@ -37,7 +37,7 @@ void thermodynamics(char *file_echoinput,int iwrite_screen,int iwrite_files);
 #define FALSE 0
 #endif
 extern double Betamu[NCOMP_MAX];
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Betamu_chain[NMER_MAX];
 #define WJDC3        5 
 #define WJDC2        4 

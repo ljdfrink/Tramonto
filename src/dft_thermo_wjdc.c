@@ -50,6 +50,10 @@ void WJDC_thermo_precalc(char *file_echoinput)
      compute_bulk_nonlocal_wjdc_properties(file_echoinput,Dphi_Drhobar_RTF,Rho_b_RTF,Rho_seg_RTF,
                                              	       Xi_cav_RTF,Field_WJDC_RTF,G_WJDC_RTF);
   }
+  if (Mesh_coarsening == RHOSTEP_ZONE){
+     compute_bulk_nonlocal_wjdc_properties(file_echoinput,Dphi_Drhobar_RHOSTEP0,Rho_b_RHOSTEP0,Rho_seg_RHOSTEP0,
+                                             	       Xi_cav_RHOSTEP0,Field_WJDC_RHOSTEP0,G_WJDC_RHOSTEP0);
+  }
   return;
 }
 /*******************************************************************************/

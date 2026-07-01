@@ -18,11 +18,15 @@
 extern double ***GsumPrefac_GDerivs;
 extern int ***Index_UnkGQ_Gsum;
 #define NCOMP_MAX 6
+#define FLAG_BULK_LBB -886
+#define FLAG_BULK_RTF -887
 #define FLAG_BULK   -888
+#define FLAG_RHOSTEP_ZONE  -555
 extern int Proc;
 extern int Grafted_SegID[NCOMP_MAX];
 extern int ***Bonds;
 extern int *B2G_node_extra;
+int *B2L_node;
 extern double **GsumPrefac_XiDerivs;
 extern int **Index_UnkB_Gsum;
 extern int **Index_SurfNodes_Gsum;
@@ -80,7 +84,7 @@ double dy_dxi2_cav(double sigma_1,double sigma_2,double xi_2,double xi_3);
 extern void *LinProbMgr_manager;
 extern int *B2G_node;
 extern int Nnodes;
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Solver_Unk[3 *NCOMP_MAX+2 *NMER_MAX+NMER_MAX *NMER_MAX+13];
 extern int *L2G_node;
 extern double **Array_test;

@@ -460,8 +460,9 @@ double load_cavity_wtc(int iunk, int loc_inode, int inode_box, int *ijk_box,
                     int izone, double **x,int resid_only_flag)
 {
   double resid=0.0,mat_val,resid_cavity=0.0;
-  int jzone_flag;
+  int jzone_flag,mesh_coarsen_flag_i;
 
+  mesh_coarsen_flag_i=izone;
   jzone_flag=FALSE;
 
   if (resid_only_flag != INIT_GUESS_FLAG){
@@ -475,8 +476,13 @@ double load_cavity_wtc(int iunk, int loc_inode, int inode_box, int *ijk_box,
   }
   resid_cavity=resid;
 
-  if (izone ==FLAG_BULK){
-     resid=Xi_cav_b[iunk-Phys2Unk_first[CAVWTC]+2];
+  if (mesh_coarsen_flag_i ==FLAG_BULK || mesh_coarsen_flag_i==FLAG_BULK_LBB 
+      || mesh_coarsen_flag_i==FLAG_BULK_RTF || mesh_coarsen_flag_i==FLAG_RHOSTEP_ZONE){
+     if (mesh_coarsen_flag_i==FLAG_BULK) resid=Xi_cav_b[iunk-Phys2Unk_first[CAVWTC]+2];
+     else if (mesh_coarsen_flag_i==FLAG_BULK_LBB) resid=Xi_cav_LBB[iunk-Phys2Unk_first[CAVWTC]+2];
+     else if (mesh_coarsen_flag_i==FLAG_BULK_RTF) resid=Xi_cav_RTF[iunk-Phys2Unk_first[CAVWTC]+2];
+     else if (mesh_coarsen_flag_i==FLAG_RHOSTEP_ZONE) resid=Xi_cav_RHOSTEP0[iunk-Phys2Unk_first[CAVWTC]+2];
+
      if (resid_only_flag != CALC_RESID_ONLY) dft_linprobmgr_insertrhsvalue(LinProbMgr_manager,iunk,loc_inode,-resid);
      resid_cavity += resid;
   }

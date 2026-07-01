@@ -1,5 +1,8 @@
 /* This file was automatically generated.  Do not edit! */
-double load_poisson_bc(int iunk,int loc_inode,int inode_box,int resid_only_flag);
+double loadBC_constCharge(int iunk,int loc_inode,int inode_box,int resid_only_flag);
+double loadBC_chrgReg1_pot(double **x,int iunk,int iwall,int loc_inode,int inode_box,int resid_only_flag);
+double loadBC_chrgReg1_surfDens(double **x,int iunk,int iwall,int loc_inode,int inode_box,int resid_only_flag);
+double loadBC_chrgReg2_surfDens(double **x,int iunk,int iwall,int loc_inode,int inode_box,int resid_only_flag);
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -32,10 +35,11 @@ extern double Esize_x[NDIM_MAX];
 extern double Charge_f[NCOMP_MAX];
 extern int **Lsemiperm;
 extern int **Wall_elems;
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Unk2Comp[NMER_MAX];
 extern int Lseg_densities;
 #define NEQ_TYPE       12 
+#define NONE       -1
 extern int Phys2Unk_last[NEQ_TYPE];
 #define DENSITY        0
 extern int **Zero_density_TF;
@@ -54,6 +58,7 @@ int offset_to_node_box(int *ijk_box,int *offset,int *reflect_flag);
 #define POW_DOUBLE_INT pow
 #endif
 #define POISSON        1
+#define CHARGE_REGULATED 4
 extern int Phys2Unk_first[NEQ_TYPE];
 extern double Temp_elec;
 #define PI    3.141592653589793238462643383279502884197169399375
@@ -66,6 +71,12 @@ extern int Nnodes_per_el_V;
 extern double Elec_param_w[NWALL_MAX];
 #define CONST_POTENTIAL  1
 extern int WallType[NWALL_MAX];
+
+/* These are choices for reaction types at surfaces */
+#define CHARGEREG1_SURFDENS 0
+#define CHARGEREG1_POT      1
+#define CHARGEREG2_SURFDENS 2  /* Chan Model */
+
 #define NWALL_MAX_TYPE 20 
 extern int Type_bc_elec[NWALL_MAX_TYPE];
 extern int Nlists_HW;
@@ -78,6 +89,23 @@ double load_polarize_poissons_eqn(int iunk,int loc_inode,int inode_box,int *ijk_
 #define POLARIZE       3
 extern int Type_coul;
 extern double Elec_pot_RTF;
+
+#define NREACT_MAX 10 
+extern int ChargeRegTF;
+extern int Nreact_perSurf[NWALL_MAX_TYPE];
+extern double Density_rxnSites[NWALL_MAX_TYPE];
+extern int Rxn_ID[NWALL_MAX_TYPE][NREACT_MAX];
+extern int Rxn_type[NWALL_MAX_TYPE];
+extern double Frac_reactSites[NWALL_MAX_TYPE][NREACT_MAX]; 
+extern double K_react[NWALL_MAX_TYPE][NREACT_MAX]; 
+extern double DeltaCharge_frwdRxn[NWALL_MAX_TYPE][NREACT_MAX]; 
+extern int N_fluidCompReact[NWALL_MAX_TYPE][NREACT_MAX];
+extern int N_fluidCompProd[NWALL_MAX_TYPE][NREACT_MAX];
+extern int ***Fluid_reactComp; 
+extern int ***Fluid_prodComp; 
+extern double  Sigma_ff[NCOMP_MAX][NCOMP_MAX];
+extern int     Type_func;
+
 extern int *B2G_node;
 extern int *B2L_node;
 extern int Nnodes;

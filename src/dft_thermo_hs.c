@@ -137,6 +137,7 @@ void chempot_FMT_hs(double *dphi_drhobar)
 {
    int icomp,i;
    double sten_sum[4];
+/*   double betamu_hs_ex[Ncomp];*/
 
   
    for (icomp=0; icomp<Ncomp;icomp++){
@@ -244,6 +245,7 @@ void compute_bulk_FMT_properties(char *file_echoinput)
      Dphi_Drhobar_b[iunk]=0.0;
      Dphi_Drhobar_LBB[iunk]=0.0;
      Dphi_Drhobar_RTF[iunk]=0.0;
+     Dphi_Drhobar_RHOSTEP0[iunk]=0.0;
   }
 
   if (Lseg_densities) nloop=Nseg_tot;
@@ -271,18 +273,32 @@ void compute_bulk_FMT_properties(char *file_echoinput)
      dphi_drb_bulk(Rhobar_b_LBB,Dphi_Drhobar_LBB);
      dphi_drb_bulk(Rhobar_b_RTF,Dphi_Drhobar_RTF);
   }
+
+  if (Mesh_coarsening == RHOSTEP_ZONE){
+     for (iloop=0; iloop<nloop; iloop++){
+       if (Lseg_densities) icomp=Unk2Comp[iloop];
+       else                icomp=iloop;
+ 
+       if (Grafted_Logical==FALSE || Grafted[Icomp_to_polID[icomp]]==FALSE){
+         if (Lseg_densities) rhobar_icomp(Rho_seg_RHOSTEP0[iloop],icomp,Rhobar_b_RHOSTEP0);
+         else                rhobar_icomp(Rho_b_RHOSTEP0[icomp],icomp,Rhobar_b_RHOSTEP0);
+      }
+     }
+     dphi_drb_bulk(Rhobar_b_RHOSTEP0,Dphi_Drhobar_RHOSTEP0);
+  }
+
   if (printproc){
-        fprintf(fp2,"Rhobar_bulk, LBB, and RTF variables for Rosenfeld HS functionals:\n");
+        fprintf(fp2,"Rhobar_bulk, LBB, RTF, and RHOSTEP0 variables for Rosenfeld HS functionals:\n");
         fprintf(fp2,"Note that vector terms are strictly zero in the bulk!\n");
-        fprintf(fp2,"\t i  Rhobar_b[i]  Rhobar_b_LBB[i]  Rhobar_b_RTF[i]\n");
-        for (i=0;i<4;i++) fprintf(fp2,"\t %d \t %9.6f \t %9.6f \t %9.6f\n", i,
-                 Rhobar_b[i], Rhobar_b_LBB[i], Rhobar_b_RTF[i]);
+        fprintf(fp2,"\t i  Rhobar_b[i]  Rhobar_b_LBB[i]  Rhobar_b_RTF[i]  Rhobar_b_RHOSTEP0[i]\n");
+        for (i=0;i<4;i++) fprintf(fp2,"\t %d \t %9.6f \t %9.6f \t %9.6f \t %9.6f\n", i,
+                 Rhobar_b[i], Rhobar_b_LBB[i], Rhobar_b_RTF[i],Rhobar_b_RHOSTEP0[i]);
         if (Iwrite==VERBOSE){
-           printf("Rhobar_bulk, LBB, and RTF variables for Rosenfeld HS functionals:\n");
+           printf("Rhobar_bulk, LBB, RTF, and RHOSTEP0 variables for Rosenfeld HS functionals:\n");
            printf("Note that vector terms are strictly zero in the bulk!\n");
-           printf("\t i  Rhobar_b[i]  Rhobar_b_LBB[i]  Rhobar_b_RTF[i]\n");
-           for (i=0;i<4;i++) printf("\t %d \t %9.6f \t %9.6f \t %9.6f\n", i,
-                 Rhobar_b[i], Rhobar_b_LBB[i], Rhobar_b_RTF[i]);
+           printf("\t i  Rhobar_b[i]  Rhobar_b_LBB[i]  Rhobar_b_RTF[i] Rhobar_b_RHOSTEP0[i]\n");
+           for (i=0;i<4;i++) printf("\t %d \t %9.6f \t %9.6f \t %9.6f \t %9.6f\n", i,
+                 Rhobar_b[i], Rhobar_b_LBB[i], Rhobar_b_RTF[i], Rhobar_b_RHOSTEP0[i]);
         }
         fclose(fp2);
   }

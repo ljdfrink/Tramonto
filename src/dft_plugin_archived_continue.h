@@ -54,7 +54,7 @@ extern double Eps_ww[NWALL_MAX_TYPE][NWALL_MAX_TYPE];
 #define CONT_RHO_ALL		103
 #define CONT_RHO_CONST_XSOLV    102
 #define CONT_RHO_CONST_RHOTOT58 101
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Rho_seg_b[NMER_MAX];
 extern int SegAll_to_Poly[NMER_MAX];
 extern int Nseg_tot;

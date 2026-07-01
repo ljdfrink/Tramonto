@@ -62,7 +62,6 @@ double load_nonlocal_hs_rosen_rb(int sten_type, int iunk, int loc_inode,
   double rho_bar[4+2*NDIM_MAX];
   int jtmp;
 
-
   for (idim=0;idim<Ndim;idim++) reflect_flag[idim]=FALSE;
   jzone = find_jzone(izone,inode_box);
 
@@ -197,8 +196,9 @@ double load_rho_bar_s(int sten_type,double **x, int iunk,
                      int resid_only_flag)
 {
   double resid_sum=0.0,resid,mat_val;
-  int jzone_flag,junk;
+  int jzone_flag,junk, mesh_coarsen_flag_i;
 
+  mesh_coarsen_flag_i=izone;
   jzone_flag=FALSE;
 
   if (resid_only_flag != INIT_GUESS_FLAG){
@@ -212,8 +212,13 @@ double load_rho_bar_s(int sten_type,double **x, int iunk,
      }
   }
 
-  if (izone == FLAG_BULK){       /* Set value for a bulk node */
-     resid = Rhobar_b[iunk-Phys2Unk_first[HSRHOBAR]];
+  if (mesh_coarsen_flag_i == FLAG_BULK || mesh_coarsen_flag_i==FLAG_BULK_LBB || 
+      mesh_coarsen_flag_i==FLAG_BULK_RTF ||mesh_coarsen_flag_i==FLAG_RHOSTEP_ZONE){       /* Set value for a bulk node */
+     if (mesh_coarsen_flag_i==FLAG_BULK) resid = Rhobar_b[iunk-Phys2Unk_first[HSRHOBAR]];
+     else if (mesh_coarsen_flag_i==FLAG_BULK_LBB) resid = Rhobar_b_LBB[iunk-Phys2Unk_first[HSRHOBAR]];
+     else if (mesh_coarsen_flag_i==FLAG_BULK_RTF) resid = Rhobar_b_RTF[iunk-Phys2Unk_first[HSRHOBAR]];
+     else if (mesh_coarsen_flag_i==FLAG_RHOSTEP_ZONE) resid = Rhobar_b_RHOSTEP0[iunk-Phys2Unk_first[HSRHOBAR]];
+
      if (resid_only_flag != CALC_RESID_ONLY) dft_linprobmgr_insertrhsvalue(LinProbMgr_manager,iunk,loc_inode,-resid);
      resid_sum +=resid;
   }
@@ -298,8 +303,9 @@ double load_rho_bar_v(double **x,int iunk, int loc_inode,int inode_box,
                     int resid_only_flag)
 {
   double resid,resid_sum=0.0,mat_val;
-  int junk,jzone_flag,idim;
+  int junk,jzone_flag,idim,mesh_coarsen_flag_i;
 
+  mesh_coarsen_flag_i=izone;
   jzone_flag=FALSE;
 
   if (resid_only_flag != INIT_GUESS_FLAG){
@@ -313,8 +319,13 @@ double load_rho_bar_v(double **x,int iunk, int loc_inode,int inode_box,
      }
   }
 
-  if (izone == FLAG_BULK){       /* Set value for a bulk node */
-     resid = Rhobar_b[iunk-Phys2Unk_first[HSRHOBAR]];
+  if (mesh_coarsen_flag_i == FLAG_BULK || mesh_coarsen_flag_i==FLAG_BULK_LBB || 
+      mesh_coarsen_flag_i==FLAG_BULK_RTF ||mesh_coarsen_flag_i==FLAG_RHOSTEP_ZONE){       /* Set value for a bulk node */
+     if (mesh_coarsen_flag_i==FLAG_BULK) resid = Rhobar_b[iunk-Phys2Unk_first[HSRHOBAR]];
+     else if (mesh_coarsen_flag_i==FLAG_BULK_LBB) resid = Rhobar_b_LBB[iunk-Phys2Unk_first[HSRHOBAR]];
+     else if (mesh_coarsen_flag_i==FLAG_BULK_RTF) resid = Rhobar_b_RTF[iunk-Phys2Unk_first[HSRHOBAR]];
+     else if (mesh_coarsen_flag_i==FLAG_RHOSTEP_ZONE) resid = Rhobar_b_RHOSTEP0[iunk-Phys2Unk_first[HSRHOBAR]];
+
      if (resid_only_flag !=CALC_RESID_ONLY) dft_linprobmgr_insertrhsvalue(LinProbMgr_manager,iunk,loc_inode,-resid);
      resid_sum +=resid;
   }

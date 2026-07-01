@@ -34,7 +34,10 @@ double d2y_dxi2_sq(double sigma_1,double sigma_2,double xi_2,double xi_3);
 #define POW_DOUBLE_INT pow
 #endif
 #define PI    3.141592653589793238462643383279502884197169399375
+#define FLAG_BULK_LBB -886
+#define FLAG_BULK_RTF -887
 #define FLAG_BULK   -888
+#define FLAG_RHOSTEP_ZONE  -555
 extern int Nseg_tot;
 #define THETA_FN_SIG          5
 double load_polyTC_cavityEL(int iunk,int loc_inode,int inode_box,int icomp,int izone,int *ijk_box,double **x,int resid_only_flag);
@@ -66,7 +69,7 @@ double load_polyTC_bondEL(int iunk,int loc_inode,int inode_box,int icomp,int izo
 extern int *B2G_node;
 extern int Nnodes;
 #define NCOMP_MAX 6
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Solver_Unk[3 *NCOMP_MAX+2 *NMER_MAX+NMER_MAX *NMER_MAX+13];
 extern int *L2G_node;
 extern double **Array_test;
@@ -92,6 +95,7 @@ extern double Sigma_ff[NCOMP_MAX][NCOMP_MAX];
 double y_cav(double sigma_1,double sigma_2,double xi_2,double xi_3);
 extern double Xi_cav_RTF[4];
 extern double Xi_cav_LBB[4];
+extern double Xi_cav_RHOSTEP0[4];
 extern double Xi_cav_b[4];
 #define CAVWTC         4
 extern int Unk2Comp[NMER_MAX];

@@ -46,7 +46,7 @@ extern int Nlists_HW;
 extern int Phys2Unk_last[NEQ_TYPE];
 #define DENSITY        0
 extern int Phys2Unk_first[NEQ_TYPE];
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Unk2Comp[NMER_MAX];
 extern int Lseg_densities;
 #define MF_EQ          3

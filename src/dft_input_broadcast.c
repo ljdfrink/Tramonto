@@ -324,6 +324,29 @@ void broadcast_input()
   /**********************************************/
   if (Type_coul != NONE || Type_pairPot==PAIR_COULOMB_CS || Type_pairPot==PAIR_COULOMB) {
      if (Nwall_type>0) MPI_Bcast(Type_bc_elec,NWALL_MAX_TYPE,MPI_INT,0,MPI_COMM_WORLD);
+
+     /**********************************************/
+     /* Broadcast Input for Charge Regulating Systems  */ 
+     /**********************************************/
+     MPI_Bcast(&ChargeRegTF,1,MPI_INT,0,MPI_COMM_WORLD);
+     if (ChargeRegTF==TRUE){
+       MPI_Bcast(Nreact_perSurf,NWALL_MAX_TYPE,MPI_INT,0,MPI_COMM_WORLD);
+       MPI_Bcast(Rxn_type,NWALL_MAX_TYPE,MPI_INT,0,MPI_COMM_WORLD);
+       MPI_Bcast(Frac_reactSites,NWALL_MAX_TYPE*NREACT_MAX,MPI_DOUBLE,0,MPI_COMM_WORLD);
+       MPI_Bcast(K_react,NWALL_MAX_TYPE*NREACT_MAX,MPI_DOUBLE,0,MPI_COMM_WORLD);
+       MPI_Bcast(DeltaCharge_frwdRxn,NWALL_MAX_TYPE*NREACT_MAX,MPI_DOUBLE,0,MPI_COMM_WORLD);
+       MPI_Bcast(N_fluidCompReact,NWALL_MAX_TYPE*NREACT_MAX,MPI_INT,0,MPI_COMM_WORLD);
+       MPI_Bcast(N_fluidCompProd,NWALL_MAX_TYPE*NREACT_MAX,MPI_INT,0,MPI_COMM_WORLD);
+       if (Proc>0) Fluid_reactComp = (int ***) array_alloc(3, NWALL_MAX_TYPE, NREACT_MAX, NCOMP_MAX, sizeof(int));
+       MPI_Bcast(**Fluid_reactComp,NWALL_MAX_TYPE*NREACT_MAX*NCOMP_MAX,MPI_INT,0,MPI_COMM_WORLD);
+       if (Proc>0) Fluid_prodComp = (int ***) array_alloc(3, NWALL_MAX_TYPE, NREACT_MAX, NCOMP_MAX, sizeof(int));
+       MPI_Bcast(**Fluid_prodComp,NWALL_MAX_TYPE*NREACT_MAX*NCOMP_MAX,MPI_INT,0,MPI_COMM_WORLD);
+     } 
+
+
+     /**********************************************/
+     /* Broadcast Input for Local Fixed Charges        */ 
+     /**********************************************/
      MPI_Bcast(&Nlocal_charge,1,MPI_INT,0,MPI_COMM_WORLD);
      ncharge=0;
      if      (Nlocal_charge > 0)  ncharge = Nlocal_charge;
@@ -399,9 +422,10 @@ void broadcast_input()
   MPI_Bcast(&Iguess_fields,1,MPI_INT,0,MPI_COMM_WORLD);
   MPI_Bcast(&random_rho,1,MPI_DOUBLE,0,MPI_COMM_WORLD);   /* LMH */
 
-  if (Iguess==STEP_PROFILE || (Iguess>=CHOP_RHO && Iguess<= CHOP_RHO_STEP)){
+  if (Iguess==STEP_PROFILE || Iguess==STEP_PROFILE_DROP || (Iguess>=CHOP_RHO && Iguess<= CHOP_RHO_STEP)){
     MPI_Bcast(&Nsteps,1,MPI_INT,0,MPI_COMM_WORLD);
     MPI_Bcast(Orientation_step,NSTEPS_MAX,MPI_INT,0,MPI_COMM_WORLD);
+    if (Iguess==STEP_PROFILE_DROP) MPI_Bcast(Origin_step,NDIM_MAX,MPI_DOUBLE,0,MPI_COMM_WORLD);
     MPI_Bcast(Xstart_step,NSTEPS_MAX,MPI_DOUBLE,0,MPI_COMM_WORLD);
     MPI_Bcast(Xend_step,NSTEPS_MAX,MPI_DOUBLE,0,MPI_COMM_WORLD);
     MPI_Bcast(Rho_step,NSTEPS_MAX*NCOMP_MAX,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -457,6 +481,7 @@ void broadcast_input()
   MPI_Bcast(&NL_rel_tol,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Bcast(&NL_abs_tol,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Bcast(&NL_update_scalingParam,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+  MPI_Bcast(&Niter_min_updates,1,MPI_INT,0,MPI_COMM_WORLD);
   MPI_Bcast(&NL_rel_tol_picard,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Bcast(&NL_abs_tol_picard,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
   MPI_Bcast(&Load_Bal_Flag,1,MPI_INT,0,MPI_COMM_WORLD);

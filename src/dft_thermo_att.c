@@ -85,6 +85,7 @@ chempot_att: In this routine calculate the strict mean field
                      chemical potential */
 void chempot_att(double *rho)
 {
+  /*double betamu_att[Ncomp];*/
   int icomp,jcomp;
 
   for (icomp=0; icomp<Ncomp; icomp++) Betamu_att[icomp] = 0.0;

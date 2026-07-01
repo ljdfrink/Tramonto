@@ -22,7 +22,7 @@ double constant_boundary(int iunk,int jnode_box);
 #include "Tramonto_ConfigDefs.h"
 extern int **Zero_density_TF;
 #define DENSITY        0
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Unk2Comp[NMER_MAX];
 extern int Lseg_densities;
 double jac_rho_bar(int junk,int jnode_box,double **x);
@@ -57,9 +57,13 @@ extern int Nrho_bar_s;
 #define HSRHOBAR       2
 #define NEQ_TYPE       12 
 extern int Phys2Unk_first[NEQ_TYPE];
+#define FLAG_BULK_LBB -886
+#define FLAG_BULK_RTF -887
 #define FLAG_BULK   -888
+#define FLAG_RHOSTEP_ZONE  -555
 extern double Rhobar_b_RTF[10];
 extern double Rhobar_b_LBB[10];
+extern double Rhobar_b_RHOSTEP0[10];
 extern double Rhobar_b[10];
 extern void *LinProbMgr_manager;
 #define CALC_RESID_ONLY  3

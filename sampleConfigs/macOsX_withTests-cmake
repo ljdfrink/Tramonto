@@ -1,0 +1,20 @@
+#
+# For Mac OS X
+#
+cmake \
+     -DTRILINOS_PATH=/Users/ljdfrink/src/Trilinos/BUILD_TRILINOS_11.14.1_FAST_CLANG/lib/cmake/Trilinos \
+     -DCMAKE_BUILD_TYPE:STRING=RELEASE \
+     -DCMAKE_CXX_FLAGS:STRING="-O3" \
+     -DCMAKE_C_FLAGS:STRING="-O3" \
+     -D USE_TPETRA:BOOL=OFF \
+     -D ENABLE_MUELU:BOOL=ON \
+     -DBUILD_TESTING=ON \
+     -DTramonto_TEST_HARNESS_DEFAULT_PROCESSES=16 \
+     -DTramonto_TEST_HARNESS_Sanity_TIMEOUT=100 \
+     -DTramonto_TEST_HARNESS_Checkin_TIMEOUT=200 \
+     -DTramonto_TEST_HARNESS_Continuous_TIMEOUT=600 \
+     -DTramonto_TEST_HARNESS_Nightly_TIMEOUT=1400 \
+     -DTramonto_TEST_HARNESS_Occasional_TIMEOUT=2000 \
+     -DBUILD_GUI="false" \
+     -DCMAKE_INSTALL_PREFIX="/Users/ljdfrink/src/Tramonto/BUILD_Tri_11.14.1_FAST_TPETRA_TESTS_CLANG" \
+     ..

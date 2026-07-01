@@ -24,7 +24,7 @@ extern int *Unk_to_Poly;
 double CMS_Resid_Bulk_GCHAIN(int iunk,int pol_num,int jseg,int unk_B,int inode_box,int jnode_box,int nunk,int *unk,double weight,double **x);
 double CMS_Resid_GCHAIN(int iunk,int pol_num,int jseg,int unk_B,int inode_box,int jnode_box,int nunk,int *unk,double weight,double **x);
 #define NBOND_MAX 4
-#define NMER_MAX     200
+#define NMER_MAX     300
 void calc_init_polymer_G_CMS(double **xInBox,double **xOwned);
 #define FALSE 0
 #if !defined(_CON_CONST_H_)
@@ -36,6 +36,7 @@ void calc_init_polymer_G_CMS(double **xInBox,double **xOwned);
 double HW_boundary_weight(int icomp,int ilist,double *hw_weight,int inode_box,int *reflect_flag);
 extern int **Nodes_2_boundary_wall;
 extern int Lhard_surf;
+extern int Ndim;
 int offset_to_node_box(int *ijk_box,int *offset,int *reflect_flag);
 typedef struct Stencil_Struct Stencil_Struct;
 extern struct Stencil_Struct ***Stencil;
@@ -92,15 +93,17 @@ void setup_polymer_rho(double **xInBox,double **xOwned,int guess_type);
 #define CMS          0
 extern int Type_poly;
 #define NSTEPS_MAX 10
-extern double Rho_step[NCOMP_MAX][NSTEPS_MAX];
+extern double Rho_step[NSTEPS_MAX][NCOMP_MAX];
 extern double ***Rism_cr;
 extern double Xend_step[NSTEPS_MAX];
 extern double Xstart_step[NSTEPS_MAX];
 extern int Orientation_step[NSTEPS_MAX];
+extern double Origin_step[NDIM_MAX];
 extern int Nsteps;
 void node_to_position(int inode,double *NodePos);
 extern int *B2G_node;
 #define STEP_PROFILE     2
+#define STEP_PROFILE_DROP     7
 #define CONST_RHO        0 
 void node_box_to_ijk_box(int node_box,int *ijk_box);
 void setup_polymer_simple(double **xInBox,int guess_type);

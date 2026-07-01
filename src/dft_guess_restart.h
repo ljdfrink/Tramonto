@@ -19,7 +19,7 @@ extern double **Vext;
 void setup_exp_density_with_profile(double **xInBox);
 #define NCOMP_MAX 6
 #define NSTEPS_MAX 10
-extern double Rho_step[NCOMP_MAX][NSTEPS_MAX];
+extern double Rho_step[NSTEPS_MAX][NCOMP_MAX];
 #define CHOP_RHO_STEP    4
 #define CHOP_RHO         3
 extern double Xstart_step[NSTEPS_MAX];
@@ -29,7 +29,7 @@ void chop_profile(double **xInBox,int guess_type);
 void check_zero_densities_owned(double **xOwned);
 extern double Rho_b[NCOMP_MAX];
 extern double VEXT_MAX;
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Rho_seg_b[NMER_MAX];
 extern int **Zero_density_TF;
 extern void *LinProbMgr_manager;

@@ -244,7 +244,7 @@ double ur12andYUKAWA_Integral(double r,int i, int j)
   r9_inv  = r3_inv*r3_inv*r3_inv;
 
 
-  uatt_int = -4.*PI*eps*sigma6*sigma6*r9_inv/9.0 -
+  uatt_int = -4.*PI*eps*sigma6*sigma6*r9_inv/9.0 +
              4*PI*Ayukawa*sigma*exp(alpha)*((exp(-c*r)/(c*c))*(-c*r-1.0));
 
   return uatt_int;

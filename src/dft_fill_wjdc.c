@@ -125,7 +125,7 @@ double load_WJDC_Geqns(int iunk, int loc_inode, int inode_box, int *ijk_box, int
 {
     int Njacobian_types;
     int Njacobian_sums;
-    double resid_G;
+    double resid_G=0.;
     void (*funcArray_Jac[3])(int,int,int,int,int,int,int,int,int *,double,double **);
     double (*fp_ResidG)(int,int,int,int,int,int,int,int *,double,double **);
     double (*fp_ResidG_Bulk)(int,int,int,int,int,int,int,int *,double,double **);
@@ -138,7 +138,6 @@ double load_WJDC_Geqns(int iunk, int loc_inode, int inode_box, int *ijk_box, int
     funcArray_Jac[2]=&WJDC_Jacobian_GCHAIN_derivCAVITY;
     fp_ResidG=&WJDC_Resid_GCHAIN;
     fp_ResidG_Bulk=&WJDC_Resid_Bulk_GCHAIN;
-    
     resid_G=load_Chain_Geqns(WJDC_FIELD,Njacobian_types,Njacobian_sums,
                              funcArray_Jac,fp_ResidG,fp_ResidG_Bulk,
                              iunk,loc_inode,inode_box,
@@ -299,7 +298,8 @@ double yterm_wjdc(int icomp, int jcomp,int jnode_box,double **x)
      return(term);
 }
 /****************************************************************************/
-/*load_polyWJDC_cavityEL:  Here add the bond contributions of the WTC association/bonding (cavity term) functionals                       to the Euler-Lagrange equation for the Wertheim-Tripathi-Chapman theory */
+/*load_polyWJDC_cavityEL:  Here add the bond contributions of the WTC association/bonding (cavity term) functionals                       
+  to the Euler-Lagrange equation for the Wertheim-Tripathi-Chapman theory */
 double load_polyWJDC_cavityEL(int iunk,int loc_inode,int inode_box,int icomp,int izone,int *ijk_box,double **x,int resid_only_flag)
 {
   int jseg,kseg,kbond,jcomp,unk_xi2,unk_xi3,unk_rho,kcomp,unk_B,unk_GQ,jseg_tmp,i;
@@ -349,8 +349,6 @@ double load_polyWJDC_cavityEL(int iunk,int loc_inode,int inode_box,int icomp,int
          xi_2=constant_boundary(unk_xi2,jnode_box);
          xi_3=constant_boundary(unk_xi3,jnode_box);
     }
-
-
 
     resid=0.0;
     for (jseg=0;jseg<Nseg_tot;jseg++){
@@ -539,9 +537,12 @@ double load_polyWJDC_cavityEL(int iunk,int loc_inode,int inode_box,int icomp,int
   } /* end of loop over stencil !! */
 
   /* Analytic Matrix entries for grafted chains */
+/*if (iunk==12 && L2G_node[loc_inode]==10) printf("Proc=%d:  check 4 after loop over stencils Analyt_WJDC_Jac=%d\n",Proc,Analyt_WJDC_Jac);*/
+/* NOTE: March 2023 - this bit of code is problematic for grafted chain systems.  It fails inconsistently.*/
 
 
   if(Analyt_WJDC_Jac!=FALSE && resid_only_flag==FALSE && Grafted_Logical==TRUE) { 
+
      for (iwall=0;iwall<Nwall;iwall++){
         for (ipol=0;ipol<Npol_comp;ipol++){
           if (WallType[iwall]==Graft_wall[ipol]){
@@ -596,7 +597,6 @@ double calc_dens_seg(int iseg,int inode_box,double **x,int flag)
 /*              unk_GQ_test = unk_GQ-Phys2Unk_first[G_CHAIN];
               if (Pol_Sym[unk_GQ_test] != -1) unk_GQ=Pol_Sym[unk_GQ_test] + Phys2Unk_first[G_CHAIN];*/
               fac1 *= x[unk_GQ][inode_box];
-
     }
    dens = fac1*POW_DOUBLE_INT(x[unk_B][inode_box],boltz_pow);
 

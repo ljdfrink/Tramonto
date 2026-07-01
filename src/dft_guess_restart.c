@@ -329,12 +329,14 @@ void read_in_a_file(int guess_type,char *filename)
        if (Type_poly == CMS || Type_poly==CMS_SCFT || Type_poly==WJDC || Type_poly==WJDC2 || Type_poly==WJDC3){
          sprintf(filename2,"%sg",filename);
 	 if( (fp6=fopen(filename2,"r")) == NULL){
-           if ((Iguess_fields==CALC_ALL_FIELDS || Iguess_fields==CALC_RHOBAR_AND_G) && index==0) 
+           if ((Iguess_fields==CALC_ALL_FIELDS || Iguess_fields==CALC_RHOBAR_AND_G) && index==0) {
               if (Proc==0 && Iwrite_screen == SCREEN_VERBOSE)
               printf("\t ...NO G_EQN DATA IS FOUND - NO dft_dens.datg file \n\t\t...an initial guess will be constructed from other field data\n");
-           else if ((Iguess_fields==BULK || Iguess_fields==CALC_RHOBAR_ONLY)&&index==0) 
+           }
+           else if ((Iguess_fields==BULK || Iguess_fields==CALC_RHOBAR_ONLY)&&index==0) {
               if (Proc==0 && Iwrite_screen == SCREEN_VERBOSE)
               printf("\t ...NO G_EQN DATA IS FOUND - NO dft_dens.datg file \n\t\t...an initial guess will be constructed from bulk fluid data\n");
+           }
            Restart_field[G_CHAIN]=FALSE;
 	 }
          else  Restart_field[G_CHAIN]=TRUE;
@@ -728,7 +730,7 @@ void chop_profile(double **xInBox, int guess_type)
         if (check == Nwall){
 	      iunk = Phys2Unk_first[DENSITY]+icomp;
               if (guess_type==CHOP_RHO) xInBox[iunk][inode_box] = Rho_b[icomp];
-              else if (guess_type==CHOP_RHO_STEP) xInBox[iunk][inode_box] = Rho_step[icomp][0];
+              else if (guess_type==CHOP_RHO_STEP) xInBox[iunk][inode_box] = Rho_step[0][icomp];
         }
     }
   return;

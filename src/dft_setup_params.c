@@ -589,11 +589,15 @@ void make_density_params_dimensionless()
 formats to the surface geometry structures that will be used to access data */
 void fill_surfGeom_struct()
 {
-  int iw,idim,i;
+  int iw,idim,i,ipoly,icomp_graft;
   struct SurfaceGeom_Struct *sgeom_iw;
   double r,rsq;
 
   if (Nwall_type>0) Poly_graft_dist = (double *) array_alloc (1, Nwall_type, sizeof(double));
+  icomp_graft=-1;
+  for (ipoly=0; ipoly<Npol_comp;ipoly++){
+     if(Grafted[ipoly]==TRUE) icomp_graft=Type_mer[ipoly][Grafted_SegID[ipoly]];
+  }
 
   for (iw=0;iw<Nwall_type;iw++){
     Poly_graft_dist[iw]=0.;
@@ -634,7 +638,8 @@ void fill_surfGeom_struct()
                sgeom_iw->origin_LinearFunc[i]=OriginLinearFunc[iw][i];
                sgeom_iw->endpoint_LinearFunc[i]=EndpointLinearFunc[iw][i];
             }
-            Poly_graft_dist[iw]=sgeom_iw->halfwidth[sgeom_iw->orientation];
+            if (icomp_graft>0) Poly_graft_dist[iw]=sgeom_iw->halfwidth[sgeom_iw->orientation]+0.5*Sigma_wf[icomp_graft][iw];
+            else               Poly_graft_dist[iw]=sgeom_iw->halfwidth[sgeom_iw->orientation];
             break;
 
        case finite_planar_wall:

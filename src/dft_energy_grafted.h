@@ -62,7 +62,7 @@ double graft_freen(int npol,int iunk,int icomp,double **x);
 double WJDCgraft_freen_bulk(double **x);
 extern int Npol_comp;
 extern int Lseg_densities;
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int SegChain2SegAll[NCOMP_MAX][NMER_MAX];
 extern int **Bonds_SegAll;
 extern int *Nbonds_SegAll;

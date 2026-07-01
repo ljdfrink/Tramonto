@@ -152,6 +152,7 @@ int First_time; /* for MSR preprocessing */
 int     Nzone;          /* Number of diff. quadrature zones on the mesh      */
 int    *Nodes_to_zone;   /* Array[Nnodes] of quadrature zones */
 double  Rmax_zone[5];    /* Array distances from surfaces in quadrature zones */
+double  Rmax_drop;    /* Distances from an origin to hold density constant in drop or bubble */
 int     Mesh_coarsening;  /* Flag indicating whether mesh coarsening is on */
 int     Nnodes_coarse_loc; /* Number of coarse nodes local to a processor */
 int    *List_coarse_nodes; /* List of coarse nodes local to a processor */
@@ -232,6 +233,23 @@ int     *RealWall_Images; /* Array of the real walls in the domain associated wi
 int     *Image_IDCheck; /* Array of the real walls in the domain associated with the periodic and reflected images */
 int     Nwall_Images; /* Number of surfaces including all images*/
 
+
+/* parameters introduced for a constant density zone defined by the variable Rho_step[0][icomp] */
+double Betap_RHOSTEP0;       /* Pressure calculated for region of domain defined by Rho_step[icomp][0] */
+double  Rho_b_RHOSTEP0[NCOMP_MAX];   /* Array[Ncomp] of component bulk densities      */
+double  Rhobar_b_RHOSTEP0[10]; /* Array[Nrho_bar] of bulk rhobars RTF  */
+double Dphi_Drhobar_RHOSTEP0[10];
+double  Rho_seg_RHOSTEP0[NMER_MAX];
+double Field_WJDC_RHOSTEP0[NMER_MAX];
+double Field_CMS_RHOSTEP0[NMER_MAX];
+double G_WJDC_RHOSTEP0[NMER_MAX*NBOND_MAX];
+double G_CMS_RHOSTEP0[NMER_MAX*NBOND_MAX];
+double Xi_cav_RHOSTEP0[4]; /* Array of bulk rhobars for cavity functions of WTC polymer functionals */
+double BondWTC_RHOSTEP0[NMER_MAX*NMER_MAX]; /*Array of bulk rhobars for bonds in WTC functionals*/
+double  Betamu_wtc_RHOSTEP0[NMER_MAX];
+double  Betamu_chain_RHOSTEP0[NMER_MAX];
+double  Betamu_seg_RHOSTEP0[NMER_MAX];/* Array of excess segment chemical potentials - WTC poolymer*/
+double Betamu_RHOSTEP0[NCOMP_MAX];  /*Chemical Potential Boudary region of constant density defined by Rho_step[0][icomp]*/
 
 
 /* Fluid Physics info */
@@ -322,15 +340,17 @@ int     Ipot_ww_n[NWALL_MAX_TYPE][NWALL_MAX_TYPE];    /* Potential Type for neut
 int     Ipot_ff_c;    /* Potential Type for charged part of f-f interactions */
 int     Ipot_wf_c;    /* Potential Type for charged part of w-f interactions */
 int     Lhard_surf;   /* Logical indicating if surfaces are hard core */
+int     Need_Lists;   /* Logical for special case where muticomponent multisize but the Lhard_surf is not turned on for the stencils */
 int     Lvext_dash;   /* Logical indicating if the Vext_dash array should be set up */
 int     Iguess;        /* Type of initial guess */
 double  random_rho;			/*Amount of randomness to add to rho for random initial guess LMH*/
 int     Iguess_fields;        /* Type of initial guess */
 int     Nsteps;         /* Number of steps for a step profile initial guess */
 int     Orientation_step[NSTEPS_MAX]; /* orientation of the step profile */
+double  Origin_step[NDIM_MAX]; /* origin of the step profile */
 double  Xstart_step[NSTEPS_MAX];  /* start position array for the step profile */
 double  Xend_step[NSTEPS_MAX];  /* end position array for the step profile */
-double  Rho_step[NCOMP_MAX][NSTEPS_MAX];  /* density array for a step profile */
+double  Rho_step[NSTEPS_MAX][NCOMP_MAX];  /* density array for a step profile */
 int     Lbinodal;        /* Logical TF for binodal calculation */
 double  Thickness;    /* Thickness parameter for wetting studies */
 int     Mix_type;     /* Type of mixing rules */
@@ -400,6 +420,22 @@ double  **Charge_w_sum_els; /*Array[Nnodes_b][Ndim] of surface charge per area*/
 double  *Charge_vol_els; /*Array[Nelements_box] of volumetric charge per elem*/
 int     Vol_charge_flag; /* Flag for volumetric charges */
 int     Surf_charge_flag; /* Flag for volumetric charges */
+
+int ChargeRegTF; /* set to true if there are any charge regulated surfaces */
+int Nreact_perSurf[NWALL_MAX_TYPE]; /* number of reactions occuring at each surface - by type */
+double Density_rxnSites[NWALL_MAX_TYPE]; /* number of reactions occuring at each surface - by type */
+int Rxn_ID[NWALL_MAX_TYPE][NREACT_MAX]; /* IDs for all reactions to allow indexing starting at 0 for each surface type */
+int Rxn_type[NWALL_MAX_TYPE][NREACT_MAX]; /* IDs for all reactions to allow indexing starting at 0 for each surface type */
+double Frac_reactSites[NWALL_MAX_TYPE][NREACT_MAX]; /* The fraction of sites associated with a certain reaction on a given surface */
+double pK_react[NWALL_MAX_TYPE][NREACT_MAX]; /* The equilibrium constant associated with each reaction at a given surface */
+double K_react[NWALL_MAX_TYPE][NREACT_MAX]; /* The equilibrium constant associated with each reaction at a given surface */
+double DeltaCharge_frwdRxn[NWALL_MAX_TYPE][NREACT_MAX]; /* The change in surface site charge for each reaction - defined in the forward direction */
+int N_fluidCompReact[NWALL_MAX_TYPE][NREACT_MAX]; /* The number of fluid components infolved in each reaction as reactants*/
+int N_fluidCompProd[NWALL_MAX_TYPE][NREACT_MAX]; /* The number of fluid components infolved in each reaction as products*/
+int ***Fluid_reactComp; /* The fluid components reacting with a surface in a given surface reaction */
+int ***Fluid_prodComp; /* The fluid components reacting with a surface in a given surface reaction */
+
+
 int     **Nelems_S; /* Array[Nlists_HW][Nodes_per_proc] of # surf elems the b.node touches*/
 int     ***Surf_normal; /*Array[Nlists][Nodes_per_proc][Nelems_S] of unit normal vectors */
 int     ***Surf_elem_to_wall; /*Array of wall to which a given surface element belongs...
@@ -519,6 +555,7 @@ double NL_abs_tol,NL_rel_tol; /* Convergence tolerances (update_soln)*/
 double NL_abs_tol_picard,NL_rel_tol_picard; /* Convergence tolerances (update_soln) --- may be different than newton tolerances*/
 double NL_update_scalingParam; /* Minimum fraction to update solution to slow down
                            Newton's method */
+int Niter_min_updates;
 
 /* Timers */
 double Time_linsolver_first;

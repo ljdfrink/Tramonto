@@ -379,8 +379,9 @@ void setup_surface (FILE *fp2, int *nelems_f,
            if (sgeom_iw->Lwedge_cutout && fp_angleCutout!=NULL)  angle_test=(*fp_angleCutout)(iwall,itype,xtest,WallPos_Images); 
 
            /*if (Lhard_surf && ilist !=Nlists_HW-1) dist_adjustments=0.5*Sigma_wf[ilist][itype]; */
-           if (Lhard_surf && ilist !=Nlists_HW-1) dist_adjustments=0.5*Sigma_ff[ilist][ilist]; 
+           if ((Lhard_surf || Need_Lists) && ilist !=Nlists_HW-1) dist_adjustments=0.5*Sigma_ff[ilist][ilist]; 
            else dist_adjustments=0.0;
+
            dist_adjustments+=(dist_roughness+dist_periodic+dist_linear);
 
            (*fp_inSurfaceTest)(iwall,itype,xtest,WallPos_Images,dist_adjustments,flag_X_to_center,

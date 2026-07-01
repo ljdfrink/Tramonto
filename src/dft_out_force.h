@@ -82,7 +82,7 @@ extern int Grafted[NCOMP_MAX];
 extern int **Nodes_2_boundary_wall;
 extern int *L2B_node;
 extern int Nnodes_per_proc;
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Unk2Comp[NMER_MAX];
 extern int Ncomp;
 extern int Nseg_tot;

@@ -23,7 +23,7 @@ extern int Ngeqn_tot;
 #define SCREEN_VERBOSE     3 
 extern int Nseg_type[NCOMP_MAX];
 extern int Icomp_to_polID[NCOMP_MAX];
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Type_mer[NCOMP_MAX][NMER_MAX];
 extern int Unk2Comp[NMER_MAX];
 #define WJDC2        4 

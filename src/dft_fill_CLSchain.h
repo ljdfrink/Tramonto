@@ -18,9 +18,11 @@
 #define NCOMP_MAX 6
 extern double Rho_b_RTF[NCOMP_MAX];
 extern double Rho_b_LBB[NCOMP_MAX];
-#define NMER_MAX     200
+extern double Rho_b_RHOSTEP0[NCOMP_MAX];
+#define NMER_MAX     300
 extern double Rho_seg_RTF[NMER_MAX];
 extern double Rho_seg_LBB[NMER_MAX];
+extern double Rho_seg_RHOSTEP0[NMER_MAX];
 double HW_boundary_weight(int icomp,int ilist,double *hw_weight,int inode_box,int *reflect_flag);
 extern int **Nodes_2_boundary_wall;
 extern int Lhard_surf;
@@ -68,6 +70,9 @@ double load_Chain_Geqns(int func_type_field,int Njacobian_types,int Njacobian_su
 extern double Field_WJDC_b[NMER_MAX];
 extern double Rho_seg_b[NMER_MAX];
 #define NBOND_MAX 4
+extern double G_WJDC_RTF[NMER_MAX *NBOND_MAX];
+extern double G_WJDC_LBB[NMER_MAX *NBOND_MAX];
+extern double G_WJDC_RHOSTEP0[NMER_MAX *NBOND_MAX];
 extern double G_WJDC_b[NMER_MAX *NBOND_MAX];
 double resid_and_Jac_ChainDensity_WJDC2(int func_type,double **x,int iunk,int unk_B,int loc_inode,int inode_box,int resid_only_flag,double(*fp_prefactor)(int));
 extern int *L2B_node;
@@ -141,7 +146,10 @@ double fill_constant_density_chain(int iunk,int icomp,int iseg,double fac_FIELD,
 #define DENSITY        0
 #define NEQ_TYPE       12 
 extern int Phys2Unk_first[NEQ_TYPE];
+#define FLAG_BULK_LBB -886
+#define FLAG_BULK_RTF -887
 #define FLAG_BULK   -888
+#define FLAG_RHOSTEP_ZONE  -555
 extern double Esize_x[NDIM_MAX];
 extern int Grad_dim;
 extern double Size_x[NDIM_MAX];

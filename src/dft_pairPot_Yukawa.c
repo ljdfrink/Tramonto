@@ -53,13 +53,14 @@ double uYUKAWA_CS(double r,double sigma, double eps, double rcut,double yukawaK)
   return (u);
 }
 /*******************************************************************************/
-/* uYUKAWA_CS_setparams: The parameters for the cut and shifted LJ12_6 potential */
+/* uYUKAWA_CS_setparams: The parameters for the cut and shifted Yukawa potential */
 void uYUKAWA_CS_setparams(int context, int i, int j, double *param1,double *param2,double *param3,double *param4)
 {    
   switch (context){
      case FLUID_FLUID:
         *param1 = Sigma_ff[i][j];
-        *param2 = EpsYukawa_ff[i][j];
+/*        *param2 = EpsYukawa_ff[i][j];*/
+        *param2 = Eps_ff[i][j];
         *param3 = Cut_ff[i][j];
         *param4 = YukawaK_ff[i][j];
         break;

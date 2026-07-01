@@ -100,20 +100,124 @@ void  thermodynamics(char *file_echoinput,int iwrite_screen, int iwrite_files)
 /* calc_pressure: this routine contains the logic for assembly of the pressure */
 void calc_pressure(char *file_echoinput,int iwrite_screen, int iwrite_files)
 {
+   FILE *fp;
+   if (Proc==0){
+     if( (fp = fopen(file_echoinput,"a+")) == NULL) {
+        printf("Can't open file in calc_pressure %s\n", file_echoinput);
+        exit(-1);
+      }
+   }
+
+   if (L_HSperturbation){
+     if (Type_interface==UNIFORM_INTERFACE){  /* compute the bulk pressure */     
+           if (Lseg_densities) Betap=this_pressure(iwrite_screen,Rho_seg_b,Rhobar_b,Dphi_Drhobar_b,Xi_cav_b);
+           else                Betap=this_pressure(iwrite_screen,Rho_b,Rhobar_b,Dphi_Drhobar_b,Xi_cav_b);
+           if (Proc==0){
+              print_to_file(fp,Betap,"Betap",2);
+              if (iwrite_screen != SCREEN_NONE && iwrite_screen != SCREEN_ERRORS_ONLY)  print_to_screen(Betap,"Betap");
+           }    
+     }
+     else{                                    /* need left and right pressures */
+
+           if (Lseg_densities){ 
+                               Betap_LBB=this_pressure(iwrite_screen,Rho_seg_LBB,Rhobar_b_LBB,Dphi_Drhobar_LBB,Xi_cav_LBB);
+                               Betap_RTF=this_pressure(iwrite_screen,Rho_seg_RTF,Rhobar_b_RTF,Dphi_Drhobar_RTF,Xi_cav_RTF);
+           }
+           else{                
+                               Betap_LBB=this_pressure(iwrite_screen,Rho_b_LBB,Rhobar_b_LBB,Dphi_Drhobar_LBB,Xi_cav_LBB);
+                               Betap_RTF=this_pressure(iwrite_screen,Rho_b_RTF,Rhobar_b_RTF,Dphi_Drhobar_RTF,Xi_cav_RTF);
+           }
+           if (Proc==0){
+              print_to_file(fp,Betap_LBB,"Betap_LBB",2);
+              print_to_file(fp,Betap_RTF,"Betap_RTF",2);
+              if (iwrite_screen != SCREEN_NONE && iwrite_screen != SCREEN_ERRORS_ONLY) {
+               print_to_screen(Betap_LBB,"Betap_LBB");
+               print_to_screen(Betap_RTF,"Betap_RTF");
+              }
+           }
+
+           if(Type_interface==PHASE_INTERFACE){                  /* check that the pressures on the two sides are close for 2 phase interface */
+                if (Proc==0 && fabs(Betap_LBB-Betap_RTF)/fabs(Betap_LBB)>0.1){
+                    printf("\nERROR: A two phase interface is requested,\n");
+                    printf("but the pressure is more than 10 percent different in the two bulk regions.\n");
+                    printf("This will result in unstable numerical calculations.\n");
+                    printf("Use arc-length continuation and/or binodal calculation methods to more\n");
+                    printf("precisely determine the bulk coexistence densities of the fluid.\n");
+                    printf("Betap_LBB=%g  Betap_RTF=%g\n",Betap_LBB,Betap_RTF);
+                    exit(-1);
+                }
+           }
+
+     }
+     if (Mesh_coarsening==RHOSTEP_ZONE){      /* compute the pressure in a constant density region in the domain */
+           if (Lseg_densities) Betap_RHOSTEP0=this_pressure(iwrite_screen,Rho_seg_RHOSTEP0,Rhobar_b_RHOSTEP0,Dphi_Drhobar_RHOSTEP0,Xi_cav_RHOSTEP0);
+           else                Betap_RHOSTEP0=this_pressure(iwrite_screen,Rho_b_RHOSTEP0,Rhobar_b_RHOSTEP0,Dphi_Drhobar_RHOSTEP0,Xi_cav_RHOSTEP0);
+           if (Proc==0){
+              print_to_file(fp,Betap_RHOSTEP0,"Betap_RHOSTEP0",2);
+              if (iwrite_screen != SCREEN_NONE && iwrite_screen != SCREEN_ERRORS_ONLY)  print_to_screen(Betap_RHOSTEP0,"Betap_RHOSTEP0");
+           }    
+     }
+   }
+   else {
+     /* note that CMS pressures would need to be calculated differently, but nothing
+        is currently implemented */
+   }
+   if (Proc==0) fclose(fp);
+   return;      
+}
+/***************************************************************************************/
+/* this_pressure: this routine contains the logic for assembly of the pressure */
+double this_pressure(int iwrite_screen,double *rho, double *rhobar, double *dphi_drhobar, double *xi_cav)
+{
+   double betap_hs_DFT,betap_att,betap_elec,betap_chain;
+   /*double betap_hs_PY;*/
+   double betap_att_LBB, betap_att_RTF;
+   double betap_elec_LBB, betap_elec_RTF;
+   double betap;
+
+				/* IDEAL contributions */
+   betap=pressure_ideal_gas(rho);
+   if (Proc==0 && iwrite_screen == SCREEN_VERBOSE) print_to_screen(betap,"\tIdeal gas pressure term");
+
+				/* HS FMT contributions */
+   if (Type_func != NONE) {
+        betap_hs_DFT = pressure_FMT_hs(rhobar,dphi_drhobar);
+        betap += betap_hs_DFT;
+        if (Proc==0 && iwrite_screen == SCREEN_VERBOSE) print_to_screen(betap_hs_DFT,"\tHard Sphere pressure term");
+   }
+				/* MF ATT contributions */
+   if (Type_attr != NONE){
+        betap_att = pressure_att(rho);
+        betap += betap_att;
+        if (Proc==0 && iwrite_screen == SCREEN_VERBOSE) print_to_screen(betap_att,"\tAtt pressure term");
+   }
+				/* electrostatics contributions */
+   if (Type_coul == DELTAC_RPM || Type_coul==DELTAC_GENERAL){
+        betap_elec = pressure_elec_MSA(rho);
+        betap += betap_elec;
+        if (Proc==0 && Iwrite != NO_SCREEN) printf("\t elec_MSA pressure is %9.6f\n",betap_elec);
+   }
+				/* WTC contributions */
+       /* note these aren't additive,instead we recalculate the HS, ideal terms here */
+       /* must then correct contributions from attractions, Coulomb */
+   if (Type_poly == WTC || Type_poly==WJDC || Type_poly==WJDC2 || Type_poly==WJDC3){
+	betap_chain = pressure_WTC(rho,xi_cav);
+        betap += betap_chain;
+        if (Proc==0 && iwrite_screen == SCREEN_VERBOSE) printf("\t chain pressure is %9.6f\n",betap_chain);
+   }
+
+   return betap;
+}
+/***************************************************************************************/
+/* calc_pressure_old: this routine contains the logic for assembly of the pressure */
+void calc_pressure_old(char *file_echoinput,int iwrite_screen, int iwrite_files)
+{
    double betap_hs_DFT,betap_att,betap_elec,betap_chain;
    /*double betap_hs_PY;*/
    double betap_att_LBB, betap_att_RTF;
    double betap_elec_LBB, betap_elec_RTF;
    FILE *fp;
 
-   if (Proc==0){
-/*   if (Iwrite_files == FILES_DEBUG){*/
-   if( (fp = fopen(file_echoinput,"a+")) == NULL) {
-      printf("Can't open file in calc_pressure %s\n", file_echoinput);
-      exit(1);
-   }
-   /*}*/
-   }
  
    if (Type_interface!=UNIFORM_INTERFACE){      
       if (L_HSperturbation){
@@ -126,6 +230,7 @@ void calc_pressure(char *file_echoinput,int iwrite_screen, int iwrite_files)
              Betap_LBB=pressure_ideal_gas(Rho_b_LBB);
              Betap_RTF=pressure_ideal_gas(Rho_b_RTF);
           }
+
 
 				/* HS FMT contributions */
           if (Type_func!= NONE){
@@ -228,6 +333,49 @@ void calc_pressure(char *file_echoinput,int iwrite_screen, int iwrite_files)
          /* put a calculation of CMS pressure here */
       }
    }
+
+   if (Mesh_coarsening == RHOSTEP_ZONE){   /* calculate the pressure associated with the constant density region in the domain */
+      if (L_HSperturbation){
+				/* IDEAL contributions */
+          if (Lseg_densities)  Betap_RHOSTEP0=pressure_ideal_gas(Rho_seg_RHOSTEP0);
+          else                 Betap_RHOSTEP0=pressure_ideal_gas(Rho_b_RHOSTEP0);
+                   if (Proc==0 && iwrite_screen == SCREEN_VERBOSE) print_to_screen(Betap_RHOSTEP0,"\tIdeal gas pressure term (RHOSTEP0_ZONE)");
+
+				/* HS FMT contributions */
+          if (Type_func != NONE) {
+               betap_hs_DFT = pressure_FMT_hs(Rhobar_b_RHOSTEP0,Dphi_Drhobar_RHOSTEP0);
+                   if (Proc==0 && iwrite_screen == SCREEN_VERBOSE) print_to_screen(betap_hs_DFT,"\tHard Sphere pressure term (RHOSTEP0_ZONE)");
+               Betap_RHOSTEP0 += betap_hs_DFT;
+          }
+				/* MF ATT contributions */
+          if (Type_attr != NONE){
+               betap_att = pressure_att(Rho_b_RHOSTEP0);
+                   if (Proc==0 && iwrite_screen == SCREEN_VERBOSE) print_to_screen(betap_att,"\tAtt pressure term (RHOSTEP0_ZONE)");
+	       Betap_RHOSTEP0 += betap_att;
+          }
+				/* electrostatics contributions */
+          if (Type_coul == DELTAC_RPM || Type_coul==DELTAC_GENERAL){
+               betap_elec = pressure_elec_MSA(Rho_b_RHOSTEP0);
+                   if (Proc==0 && Iwrite != NO_SCREEN) print_to_screen(betap_elec,"\telec_MSA pressure term (RHOSTEP0_ZONE)");
+               Betap_RHOSTEP0 += betap_elec;
+          }
+				/* WTC contributions */
+	  /* note these aren't additive,instead we recalculate the HS, ideal terms here */
+	  /* must then correct contributions from attractions, Coulomb */
+          if (Type_poly == WTC || Type_poly==WJDC || Type_poly==WJDC2 || Type_poly==WJDC3){
+	    betap_chain = pressure_WTC(Rho_seg_RHOSTEP0,Xi_cav_RHOSTEP0);
+                   if (Proc==0 && iwrite_screen == SCREEN_VERBOSE) print_to_screen(betap_chain,"\tchain pressure (RHOSTEP0_ZONE)");
+            Betap_RHOSTEP0 += betap_chain;
+          }
+         if (Proc==0){
+              if (iwrite_screen != SCREEN_NONE && iwrite_screen != SCREEN_ERRORS_ONLY)  print_to_screen(Betap_RHOSTEP0,"Betap_RHOSTEP0");
+              print_to_file(fp,Betap_RHOSTEP0,"Betap_RHOSTEP0",2);
+         }    
+      }
+      else{
+         /* put a calculation of CMS pressure here */
+      }
+   }
    if (Proc==0) fclose(fp);
    return;
 }
@@ -237,6 +385,8 @@ void calc_chempot(char *file_echoinput,int iwrite_screen, int iwrite_files)
 {
 
    int icomp,iseg,ipol;
+/*   double *betamu_hs_ex;
+   double *betamu_att;*/
    FILE *fp;
 
    if (Proc==0){

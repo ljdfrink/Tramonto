@@ -22,12 +22,14 @@ void node_box_to_ijk_box(int node_box,int *ijk_box);
 extern int Phys2Unk_last[NEQ_TYPE];
 extern void *LinProbMgr_manager;
 void calc_init_chem_pot(double **xInBox,double **xOwned);
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Betamu_chain_RTF[NMER_MAX];
 extern double Betamu_chain_LBB[NMER_MAX];
+extern double Betamu_chain_RHOSTEP0[NMER_MAX];
 #define NCOMP_MAX 6
 extern double Betamu_RTF[NCOMP_MAX];
 extern double Betamu_LBB[NCOMP_MAX];
+extern double Betamu_RHOSTEP0[NCOMP_MAX];
 #define POISSON        1
 extern double Charge_f[NCOMP_MAX];
 #define DENSITY        0

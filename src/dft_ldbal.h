@@ -47,7 +47,10 @@ void load_balance(int flag,double *fill_time,int *N_update,int **update);
 #if !(defined(DEC_ALPHA))
 #define POW_INT (int)pow
 #endif
+#define FLAG_BULK_LBB -886
+#define FLAG_BULK_RTF -887
 #define FLAG_BULK   -888
+#define FLAG_RHOSTEP_ZONE  -555
 #define FLAG_1DBC   -999
 extern int *Mesh_coarsen_flag;
 extern int L1D_bc;
@@ -72,6 +75,7 @@ extern int Type_attr;
 extern int Ncomp;
 int node_to_node_box(int inode);
 void node_to_ijk(int node,int *ijk);
+/*double set_weight_for_node(int inode, int *, int *, int *);*/
 double set_weight_for_node(int inode);
 void sort_int_array(int n,int ra[]);
 #define SCREEN_VERBOSE     3 

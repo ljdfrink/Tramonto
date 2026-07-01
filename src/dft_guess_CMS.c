@@ -86,8 +86,9 @@ void calc_init_CMSfield(double **xInBox,double **xOwned)
                        for the polymers variables for SCF case    */
 void setup_polymer_simple(double **xInBox, int guess_type)
 {
-  int loc_inode,inode_box,ijk_box[3],i, iunk;
+  int loc_inode,inode_box,ijk_box[3],i, iunk,idim;
   double temp;
+  double dist_test,rsq_to_center;
   int itype_mer,jtype_mer,inode;
   double nodepos[3];
 
@@ -105,14 +106,25 @@ void setup_polymer_simple(double **xInBox, int guess_type)
 	     if (guess_type == CONST_RHO) {
 	       temp = 0.;
 	     }
-	     else if (guess_type == STEP_PROFILE) {
+	     else if (guess_type == STEP_PROFILE || guess_type==STEP_PROFILE_DROP) {
 	       inode = B2G_node[inode_box];
                node_to_position(inode,nodepos);
                for (i=0;i<Nsteps;i++){
-                 if ( nodepos[Orientation_step[i]]>=Xstart_step[i] &&
-                      nodepos[Orientation_step[i]]<=Xend_step[i] ) {
+                   if (guess_type==STEP_PROFILE){ dist_test= nodepos[Orientation_step[i]];}
+                   else if (guess_type==STEP_PROFILE_DROP){
+                        rsq_to_center=0.0;
+                        for (idim=0; idim<Ndim;idim ++) rsq_to_center += (nodepos[idim]-Origin_step[idim])*(nodepos[idim]-Origin_step[idim]);
+                        dist_test=sqrt(rsq_to_center);
+                   }
+                  if (i==Nsteps-1 && dist_test >Xend_step[i]) {
+                      printf("position exceeds the boundary of the last step\n");
+                      for (idim=0;idim<Ndim;idim++) printf("  x%d=%g",idim,nodepos[idim]);
+                      printf("\nno directive on setting density here.  Increase Xend_step[istep=%d]\n",i);
+                      exit(-1);
+                  }
+                 if ( dist_test>=Xstart_step[i] && dist_test<=Xend_step[i] ) {
 	            if (!Zero_density_TF[inode_box][jtype_mer])
-		      temp += Rism_cr[itype_mer][jtype_mer][0]*(Rho_step[jtype_mer][i]
+		      temp += Rism_cr[itype_mer][jtype_mer][0]*(Rho_step[i][jtype_mer]
 							   - Rho_b[jtype_mer]);
 	            else temp -=  Rism_cr[itype_mer][jtype_mer][0]*Rho_b[jtype_mer];
                  }
@@ -160,8 +172,8 @@ void setup_polymer_rho(double **xInBox, double **xOwned, int guess_type)
                    if (Restart==RESTART_FEWERCOMP && icomp<Ncomp-Nmissing_densities) icomp=Ncomp-Nmissing_densities;
 	           iunk = Phys2Unk_first[DENSITY]+icomp;
        		   if (!Zero_density_TF[inode_box][icomp]) {
-                       if (Restart==RESTART_FEWERCOMP) xInBox[iunk][inode_box]=Rho_step[icomp][0];
-                       else                           xInBox[iunk][inode_box]= Rho_step[icomp][i];
+                       if (Restart==RESTART_FEWERCOMP) xInBox[iunk][inode_box]=Rho_step[0][icomp];
+                       else                           xInBox[iunk][inode_box]= Rho_step[i][icomp];
                    }
 		   else xInBox[iunk][inode_box]=0.0;
                    if (B2L_node[inode_box]!=-1) xOwned[iunk][B2L_node[inode_box]]=xInBox[iunk][inode_box];

@@ -450,7 +450,8 @@ void calc_sten_weight_el_on_boundary(int isten,double sten_rad,int icomp,int jco
                radius_sq = (point[0]*point[0] + point[1]*point[1])
                            * inv_sten_rad_sq;
 
-               if (radius_sq <= 1.0000001) {
+               /*if (radius_sq <= 1.0000001) {*/ /* there are nans if r=1.0 exactly */
+               if (radius_sq < 1.00000) {
                   weight = stencil_GetWeight_switch(isten, icomp, jcomp, 
                                      radius_sq,sten_rad, ngpu, gpu, gwu);
 
@@ -696,7 +697,7 @@ void renormalize_stencil(struct Stencil_Struct *sten, double vol_sten)
    /* renormalize stencil */
 
    ratio = vol_sten/sum;
- 
+
    for (i=0; i < sten->Length; i++) sten->Weight[i] *= ratio;
 
    if (Lhard_surf) {

@@ -27,7 +27,7 @@ extern int ***Poly_to_Unk;
 extern int **Nbond;
 extern int ***Bonds;
 extern int *Unk_to_Bond;
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int SegChain2SegAll[NCOMP_MAX][NMER_MAX];
 extern int *Unk_to_Seg;
 extern int *Unk_to_Poly;
@@ -83,7 +83,9 @@ extern double G_CMS_RTF[NMER_MAX *NBOND_MAX];
 extern double Field_CMS_RTF[NMER_MAX];
 extern double Rho_b_RTF[NCOMP_MAX];
 extern double G_CMS_LBB[NMER_MAX *NBOND_MAX];
+extern double G_CMS_RHOSTEP0[NMER_MAX *NBOND_MAX];
 extern double Field_CMS_LBB[NMER_MAX];
+extern double Field_CMS_RHOSTEP0[NMER_MAX];
 extern double Rho_b_LBB[NCOMP_MAX];
 extern double G_CMS_b[NMER_MAX *NBOND_MAX];
 extern double Field_CMS_b[NMER_MAX];

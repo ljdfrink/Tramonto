@@ -41,6 +41,7 @@ int NOXLOCA_Solver(double **xBox, double **xOwned, double **x2Owned, int doPicar
 void dft_parameterlist_destruct(void * parameterlistptr);
 extern int *B2G_node;
 extern double NL_update_scalingParam;
+extern int Niter_min_updates;
 extern int *Pol_Sym_Seg;
 #define WTC          2
 #define DENSITY        0
@@ -49,7 +50,7 @@ extern int Phys2Unk_first[NEQ_TYPE];
 extern int *Pol_Sym;
 #define G_CHAIN       11 
 #define NCOMP_MAX 6
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Unk2Phys[3 *NCOMP_MAX+2 *NMER_MAX+NMER_MAX *NMER_MAX+13];
 double gsum_double(double c);
 #define SCREEN_BASIC       1

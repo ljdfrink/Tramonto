@@ -139,7 +139,6 @@ int solve_continuation( double **xx, double **xx2)
   /******************************* First Executable Statment *****************/
 
   /* xOwned and xBox are always temp storage space */
-printf("IN CONTINUATION Nodes_box_extra=%d\n",Nnodes_box_extra);
   passdown.xOwned = (double **) array_alloc(2, Nunk_per_node, Nnodes_per_proc, sizeof(double));
   passdown.xBox   = (double **) array_alloc(2, Nunk_per_node, Nnodes_box_extra,      sizeof(double));
   x               = (double * ) array_alloc(1, Nunk_per_node*Nnodes_per_proc,  sizeof(double));
@@ -471,7 +470,7 @@ void assign_parameter_conwrap(double param)
  * Return Value:
  */
 {
-  if (Proc==0 && Iwrite_screen !=SCREEN_NONE && Iwrite_screen !=SCREEN_ERRORS_ONLY) {
+  if (Proc==0 && Iwrite_screen==VERBOSE){ /* Iwrite_screen !=SCREEN_NONE && Iwrite_screen !=SCREEN_ERRORS_ONLY) {*/
         printf("\tContinuation parameter #%d set to %g\n", Loca.cont_type1, param);
   }
   assign_parameter_tramonto(Loca.cont_type1, param,0);

@@ -242,13 +242,12 @@ void WTC_overlap()
    }
 
    /* use this to turn off all of the overlap nonsense */
-   Fac_overlap_hs[0]=1.;
-   Fac_overlap_hs[1]=1.;
-   Fac_overlap[0][0]=1.0;
-   Fac_overlap[1][0]=1.0;
-   Fac_overlap[0][1]=1.0;
-   Fac_overlap[1][1]=1.0;
-
+   for (icomp=0;icomp<Ncomp;icomp++){
+      Fac_overlap_hs[icomp]=1.0;
+     for (jcomp=0;jcomp<Ncomp;jcomp++){
+         Fac_overlap[icomp][jcomp]=1.0;
+     }
+   }
     return;
 }
 /****************************************************************************/

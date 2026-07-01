@@ -26,20 +26,22 @@ void node_to_ijk(int node,int *ijk);
 void setup_step_2consts(double **xInBox);
 extern double **Vext;
 extern int *B2L_node;
+extern int Ndim;
 #define SCREEN_NONE       -1 
 extern int Iwrite_screen;
 #define DIFFUSIVE_INTERFACE 1
 extern int Type_interface;
 #define NCOMP_MAX 6
 #define NSTEPS_MAX 10
-extern double Rho_step[NCOMP_MAX][NSTEPS_MAX];
+extern double Rho_step[NSTEPS_MAX][NCOMP_MAX];
 extern double Xend_step[NSTEPS_MAX];
 extern double Xstart_step[NSTEPS_MAX];
 extern int Orientation_step[NSTEPS_MAX];
+extern double Origin_step[NDIM_MAX];
 extern int Nsteps;
 void node_to_position(int inode,double *NodePos);
 extern int *B2G_node;
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Unk2Comp[NMER_MAX];
 extern int **Zero_density_TF;
 #define DENSITY        0
@@ -52,8 +54,9 @@ extern int Nnodes_box;
 void translate_xInBox_to_xOwned(double **xInBox,double **xOwned);
 void setup_linear_profile(double **xInBox);
 #define LINEAR           5
-void setup_stepped_profile(double **xInBox);
+void setup_stepped_profile(int guess_type,double **xInBox);
 #define STEP_PROFILE     2
+#define STEP_PROFILE_DROP     7
 void setup_exp_density(double **xInBox,double *rho,int nloop,int index);
 #define EXP_RHO          1
 extern double random_rho;

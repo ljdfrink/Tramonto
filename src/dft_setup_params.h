@@ -248,6 +248,10 @@ extern int Type_poly_arch;
 #define NONE        -1
 #define NONE        -1
 extern int Type_poly;
+#define NMER_MAX     300
+extern int Grafted[NCOMP_MAX];
+extern int Grafted_SegID[NCOMP_MAX];
+extern int Type_mer[NCOMP_MAX][NMER_MAX];
 extern char *DensityFile2;
 extern char DensityFile2_array[FILENAME_LENGTH];
 extern int Lbinodal;

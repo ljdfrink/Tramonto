@@ -18,6 +18,7 @@
 #define NCOMP_MAX 6
 extern double Betamu_RTF[NCOMP_MAX];
 extern double Betamu_LBB[NCOMP_MAX];
+extern double Betamu_RHOSTEP0[NCOMP_MAX];
 extern int **Nodes_2_boundary_wall;
 void set_fem_1el_weights(double **wt_lp_1el_ptr,double **wt_s_1el_ptr,int ***elem_permute);
 double load_linear_transport_eqn(int iunk,int loc_inode,int inode_box,int *ijk_box,double **x,int resid_only_flag);
@@ -60,7 +61,7 @@ extern double Esize_x[NDIM_MAX];
 extern int Grad_dim;
 extern int *B2G_node;
 extern int Nnodes;
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Solver_Unk[3 *NCOMP_MAX+2 *NMER_MAX+NMER_MAX *NMER_MAX+13];
 extern int *L2G_node;
 extern double **Array_test;

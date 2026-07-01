@@ -60,7 +60,7 @@ double load_euler_lagrange(int iunk,int loc_inode,int inode_box,int *ijk_box,int
 extern int L_HSperturbation;
 #define DENSITY        0
 #define NCOMP_MAX 6
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Unk2Phys[3 *NCOMP_MAX+2 *NMER_MAX+NMER_MAX *NMER_MAX+13];
 extern int **Zero_density_TF;
 int offset_to_node_box(int *ijk_box,int *offset,int *reflect_flag);
@@ -145,7 +145,10 @@ void print_residuals(int loc_inode,int iunk,double *resid_unk);
 double load_standard_node(int loc_inode,int inode_box,int *ijk_box,int iunk,double **x,struct RB_Struct *dphi_drb,double *resid_unk,int mesh_coarsen_flag_i,int resid_only_flag);
 double load_coarse_node_Ndim(int loc_inode,int inode_box,int iunk,double **x,int resid_only_flag);
 #define FLAG_PBELEC -777
+#define FLAG_BULK_LBB -886
+#define FLAG_BULK_RTF -887
 #define FLAG_BULK   -888
+#define FLAG_RHOSTEP_ZONE  -555
 void load_coarse_node_1dim(int loc_inode,int inode_box,int *ijk_box,int iunk,double **x,int resid_only_flag);
 #define FLAG_1DBC   -999
 extern int *Mesh_coarsen_flag;

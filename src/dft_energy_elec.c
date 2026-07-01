@@ -143,6 +143,124 @@ double integrand_surface_charge(int iunk,int inode_box,int iwall,double **x)
 {
   int loc_inode,idim,iel_w,surf_norm,ilist,int_type[3];
   double integrand,charge_i,prefac,deriv,fac;
+  int iunk_rho,iwall_type,icomp,ireact,junk,jnode_box;
+  double pconst, alpha1,alpha2,psi_s,b1,b2,rho1,rho2,K1,K2;
+  double theta_rxn,z_rxn,rho_b_rxn,dens_rxn_sites,alpha,z_i;
+  double fac_rxn;
+  int nShift_surfNode,RR_typeQ=FALSE;
+
+  integrand=0.0;
+  iunk = Phys2Unk_first[POISSON];
+  iunk_rho = Phys2Unk_first[DENSITY];
+  iwall_type=WallType[iwall];
+  
+  loc_inode=B2L_node[inode_box];
+  int_type[0]=int_type[1]=int_type[2]=CFD;
+
+      /* NOTE - this is needed to make the force sum rule work for const potential boundaries*/
+  if (Type_bc_elec[iwall_type]==CONST_POTENTIAL) fac=-1.0;
+  else                                           fac=1.0;
+
+  ilist = Nlists_HW - 1;
+
+  /*loop over wall elements to get surface charge */
+  for (iel_w=0; iel_w<Nelems_S[ilist][loc_inode]; iel_w++){
+
+       surf_norm = Surf_normal[ilist][loc_inode][iel_w];
+       idim = abs(surf_norm) - 1;
+
+       prefac = (double)(surf_norm/abs(surf_norm))*Area_surf_el[idim]/Nelems_S[ilist][loc_inode];
+
+       if (surf_norm <0) int_type[idim]=BFD;
+       else              int_type[idim]=FFD;
+       deriv=calc_deriv_epot(idim,inode_box,int_type,x); /* derivative of the potential at the surface */
+
+     /* find surface charge for CC and/or CP cases */
+       if (Type_bc_elec[iwall_type]==CONST_CHARGE || Type_bc_elec[WallType[iwall]]==CONST_POTENTIAL){
+           charge_i = -fac*prefac*(deriv);
+           charge_i *= Temp_elec/(4.0*PI);
+           integrand += 0.5*(charge_i*x[iunk][inode_box]);
+       }
+       else if (Type_bc_elec[iwall_type]==CHARGE_REGULATED){ /* charge regulated cases need something different */
+
+           /* find the density of reaction sites for this node */
+           dens_rxn_sites=0.0;
+           for (idim=0; idim<Ndim; idim++) dens_rxn_sites += Charge_w_sum_els[loc_inode][idim]*Area_surf_el[idim];
+
+           charge_i=0.0;
+           if (Rxn_type[iwall_type]==CHARGEREG1_POT){   /* every implementation of a charge reg surface needs a different implementation here !!!)*/
+
+              for (ireact=0; ireact<Nreact_perSurf[iwall_type]; ireact++){
+                   /*alpha=log(K_react[iwall_type][ireact]);*/
+                   rho_b_rxn=Rho_b[Fluid_reactComp[iwall_type][ireact][0]];
+                   z_rxn=DeltaCharge_frwdRxn[iwall_type][ireact];  /* this is the valence associated with the binding reaction */
+                   theta_rxn=Frac_reactSites[iwall_type][ireact];
+                   icomp=Fluid_reactComp[iwall_type][ireact][0];
+                   z_i=Charge_f[icomp];
+                   fac_rxn=exp(z_i*x[iunk][inode_box]);
+                   if (RR_typeQ==FALSE){ /* q_s - from eq. 15 from Reiner and Radke 1993 - POTENTIAL APPROACH*/
+                       charge_i -= dens_rxn_sites*z_rxn*theta_rxn*(rho_b_rxn/(rho_b_rxn + K_react[iwall_type][ireact]*fac_rxn));
+                   }
+                   else{ /* RR_typeQ - Q_s computed from eq. 19 from Reiner and Radke 1993 - POTENTIAL APPROACH */
+                      charge_i += dens_rxn_sites*z_rxn*theta_rxn*
+                                (x[iunk][inode_box]-(1./z_i)*log((rho_b_rxn+K_react[iwall_type][ireact]*fac_rxn)/(rho_b_rxn+K_react[iwall_type][ireact])));
+                   }
+              }
+           }
+           else if (Rxn_type[iwall_type]==CHARGEREG1_SURFDENS){
+               for (ireact=0; ireact<Nreact_perSurf[iwall_type]; ireact++){
+                   rho_b_rxn=Rho_b[Fluid_reactComp[iwall_type][ireact][0]];
+                   z_rxn=DeltaCharge_frwdRxn[iwall_type][ireact];  /* this is the valence associated with the binding reaction */
+                   theta_rxn=Frac_reactSites[iwall_type][ireact];
+                   icomp=Fluid_reactComp[iwall_type][ireact][0];
+                   junk=Phys2Unk_first[DENSITY]+icomp;
+                   z_i=Charge_f[icomp];
+
+               /* identify node where surface density will be defined -- works for a planar surface */
+                   if (Type_func == NONE) nShift_surfNode=0;
+                   else nShift_surfNode = (int)((0.5*Sigma_ff[icomp][icomp]+1.e-10)/Esize_x[idim]);
+                   if (surf_norm>0)      jnode_box=inode_box+nShift_surfNode;        
+                   else if (surf_norm<0) jnode_box=inode_box-nShift_surfNode;
+
+                   if (RR_typeQ==FALSE){ /* q_s - from eq. 15 from Reiner and Radke 1993 - SURFACE DENSITY APPROACH*/
+                      charge_i -= (dens_rxn_sites*z_rxn*theta_rxn)*(x[junk][jnode_box]/(K_react[iwall_type][ireact]+x[junk][jnode_box]));
+                   }
+                   else{ /* RR_typeQ - Q_s computed from eq. 19 from Reiner and Radke 1993 - SURFACE DENSITY APPROACH */
+                      charge_i+=(-dens_rxn_sites*theta_rxn)*(log((x[junk][jnode_box]+K_react[iwall_type][ireact])/(rho_b_rxn+K_react[iwall_type][ireact])));
+                   }
+               }
+           }
+           if (RR_typeQ==FALSE) integrand += 0.5*(charge_i*x[iunk][inode_box]); 
+           else                 integrand += charge_i; 
+        }
+
+  } /* end of surface element loop */
+
+/* NOTE... this was the first version implemented that would only work for CONST_CHARGE BC.
+          charge_i = 0.0;
+         for (idim=0; idim<Ndim; idim++){
+             charge_i -= Charge_w_sum_els[loc_inode][idim]*Area_surf_el[idim];
+         }
+ */
+ /* }
+  else integrand=0.0;*/
+
+  return integrand;
+}
+/****************************************************************************
+ * integrand_surface_chargeOLD:  In this routine we calculate the surface       *
+ *                           integral that gives the free energy due to     *
+ *                           charging up the surfaces (see the first        *
+ *                           term in Eq. 6 of Reiner and Radke 1991         *
+ *                           Note that we compute surface charge based on   *
+ *                           the gradient of the electrostatic field rather *
+ *                           than using the surface charge arrays so that   *
+ *                           this code will work for constant surface charge*
+ *                           or constant surface potential boundaries       */
+double integrand_surface_chargeOLD(int iunk,int inode_box,int iwall,double **x)
+{
+  int loc_inode,idim,iel_w,surf_norm,ilist,int_type[3];
+  double integrand,charge_i,prefac,deriv,fac;
   int iunk_rho;
   double pconst, alpha1,alpha2,psi_s,b1,b2,rho1,rho2,K1,K2;
 
@@ -170,7 +288,7 @@ double integrand_surface_charge(int iunk,int inode_box,int iwall,double **x)
               else              int_type[idim]=FFD;
               deriv=calc_deriv_epot(idim,inode_box,int_type,x);
 
-/*              charge_i = -fac*prefac*(Temp_elec/(4.0*PI))*deriv;  old code - multiply constants below instead*/
+            /*  charge_i = -fac*prefac*(Temp_elec/(4.0*PI))*deriv; */  /*old code - multiply constants below instead*/
 
                /* this is the expression used for CC and/or CP cases */
                  charge_i = -fac*prefac*(deriv);
@@ -186,15 +304,16 @@ double integrand_surface_charge(int iunk,int inode_box,int iwall,double **x)
 
                /* this is the q_s - equivalent of eq. 15 from Reiner and Radke 1993*/ 
                /* this is used as the source term in Poisson's equation */
-/*               charge_i=-( (pconst*Rho_b[0]/(Rho_b[0]+exp(alpha1+psi_s)))-
-                             ((1.-pconst)*Rho_b[1]/(Rho_b[1]+exp(alpha2-psi_s)))); using surface potential approach*/
+               /*using surface potential approach*/
+  /*             charge_i=-( (pconst*Rho_b[0]/(Rho_b[0]+exp(alpha1+psi_s)))-
+                             ((1.-pconst)*Rho_b[1]/(Rho_b[1]+exp(alpha2-psi_s)))); */
 
                /* same q_s eq 15 from RR, but using surface densities */
-/*             K1=exp(alpha1);
+             K1=exp(alpha1);
              K2=exp(alpha2);
              rho1=x[iunk_rho][inode_box];
              rho2=x[iunk_rho+1][inode_box];
-             charge_i = -(pconst*rho1/(K1+rho1) - (1.0-pconst)*rho2/(K2+rho2));*/
+  /*           charge_i = -(pconst*rho1/(K1+rho1) - (1.0-pconst)*rho2/(K2+rho2));*/
 
              integrand += 0.5*(charge_i*x[iunk][inode_box]);
 
@@ -207,10 +326,10 @@ double integrand_surface_charge(int iunk,int inode_box,int iwall,double **x)
 
                /* second implementation uses surface densities -as is better for DFT */
 
-/*                charge_i=-pconst*(log((rho1+K1)/(Rho_b[0]+K1)) )
-                         -(1.-pconst)*(log((rho2+K2)/(Rho_b[1]+K2)) );
-
-              integrand += (charge_i);*/
+               /* charge_i=-pconst*(log((rho1+K1)/(Rho_b[0]+K1)) )
+                         -(1.-pconst)*(log((rho2+K2)/(Rho_b[1]+K2)) );*/
+                
+/*                integrand += charge_i;*/
 
   } /* end of surface element loop */
 

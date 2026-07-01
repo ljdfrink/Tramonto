@@ -19,7 +19,7 @@
 extern double Betamu_att[NCOMP_MAX];
 extern double Rho_b[NCOMP_MAX];
 extern double Rho_b_RTF[NCOMP_MAX];
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern double Rho_seg_b[NMER_MAX];
 extern double Rho_seg_RTF[NMER_MAX];
 #define UNIFORM_INTERFACE  0

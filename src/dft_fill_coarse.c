@@ -88,6 +88,7 @@ double load_coarse_variable(double **x,int jnode_box,double fac,int iunk,int loc
   double mat_value,resid;
   if (jnode_box<0) resid = -fac*constant_boundary(iunk,jnode_box);
   else {                 
+
       resid = -fac*x[iunk][jnode_box];
       if (!resid_only_flag){
          mat_value=-fac;
@@ -115,10 +116,10 @@ void locate_neighbor_unks(double **x,int iunk, int loc_inode, int node_box,doubl
        else         offset_ptr += 9;                                             /* one node lower */
        jnode_box = offset_to_node_box(ijk_box, offset_ptr, reflect_flag);
 
-       if (jnode_box >=0 && Mesh_coarsen_flag[jnode_box]<0 && Nzone == 2){
+/*       if (jnode_box >=0 && Mesh_coarsen_flag[jnode_box]<0 && Nzone == 2){
            locate_neighbor_unks(x,iunk,loc_inode,jnode_box,fac*0.5,resid,resid_only_flag);
        }
-       else *resid += load_coarse_variable(x,jnode_box,fac,iunk,loc_inode,resid_only_flag);
+       else*/ *resid += load_coarse_variable(x,jnode_box,fac,iunk,loc_inode,resid_only_flag);
    }
    return;
 }

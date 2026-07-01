@@ -194,7 +194,7 @@ void setup_nunk_per_node(char *file_echoinput)
            printf("Eq Type key: DENSITY=0, POISSON=1, HSRHOBAR=2, MF_EQ=3, CAVWTC=4, BONDWTC=5\n");
            printf("\t \t DIFFUSION=6, CMS_FIELD=7, WJDC_FIELD=8, SCF_CONSTR=9, SCF_FIELD=10, G_CHAIN=11\n");
            for (i=0;i<NEQ_TYPE;i++) printf("Phys2Nunk[%d]=%d  start_unk=%d  end_unk=%d\n",
-                                      i,Phys2Nunk[i],Phys2Unk_first[i],Phys2Unk_last[i]);
+                                      i,Phys2Nunk[i],Phys2Unk_first[i],Phys2Unk_last[i]-1);
            for (iunk=0;iunk<Nunk_per_node;iunk++) printf("iunk=%d equation_type=%d\n",iunk,Unk2Phys[iunk]);
            printf("******************************************************\n");
       }
@@ -202,7 +202,7 @@ void setup_nunk_per_node(char *file_echoinput)
           fprintf(fpecho,"\n******************************************************\n");
           fprintf(fpecho,"TOTAL Nunk_per_node=%d\n",Nunk_per_node);
           for (i=0;i<NEQ_TYPE;i++) fprintf(fpecho,"Phys2Nunk[%d]=%d  start_unk=%d  end_unk=%d\n",
-                                      i,Phys2Nunk[i],Phys2Unk_first[i],Phys2Unk_last[i]);
+                                      i,Phys2Nunk[i],Phys2Unk_first[i],Phys2Unk_last[i]-1);
           for (iunk=0;iunk<Nunk_per_node;iunk++) fprintf(fpecho,"iunk=%d equation_type=%d\n",iunk,Unk2Phys[iunk]);
           fprintf(fpecho,"******************************************************\n");
       }

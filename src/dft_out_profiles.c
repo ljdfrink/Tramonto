@@ -983,9 +983,8 @@ void print_freen_profile_1D(double *freen_profile_1D, char *output_file)
      for (inode=0; inode<Nnodes; inode++){
         node_to_ijk(inode,ijk);
 /*        for (idim=0; idim<Ndim; idim++)*/  /* only do free energy profile in 1D so far */
-            idim=0;
-            fprintf(ifp,"%9.6f\t ",
-            ((double)ijk[idim])*Esize_x[idim]);
+/*            idim=0;*/
+            for (idim=0;idim<Ndim;idim++) fprintf(ifp,"%9.6f\t ", ((double)ijk[idim])*Esize_x[idim]);
 
             fprintf(ifp,"%9.6f\t", unk[inode]);
 

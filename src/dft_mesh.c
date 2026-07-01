@@ -258,8 +258,8 @@ void control_mesh(FILE *fpecho,char *output_file2,int print_flag, int *update)
 
   int  *elem_zones;
 
-  int ierr,icomp,ilist,iwall,inode,fac_image;
-  double sigma_test;
+  int ierr,icomp,ilist,iwall,inode,fac_image,iwall_type;
+  double sigma_test,rsq,dist_test;
   int flag,iel_box,i,nwall_max,idim;
   int inode_box,iel,reflect_flag[3],j,k,loc_inode; 
 
@@ -286,6 +286,7 @@ void control_mesh(FILE *fpecho,char *output_file2,int print_flag, int *update)
    * Nunknowns_box. 
    */
   setup_basic_box(fpecho, update);
+
   /* here is some debugging code to make sure we understand the basic box and the coordinate systems */
    if (Iwrite_files==FILES_DEBUG){
        strcpy(tmp_str_array,Outpath_array);
@@ -324,35 +325,24 @@ void control_mesh(FILE *fpecho,char *output_file2,int print_flag, int *update)
 
 
   /*
-   * Set up all arrays for surface geometry, external fields, and
-   * surface charges
+   * Set up all arrays for surface geometry, external fields, and surface charges.
    */
 
   if (Nwall != 0) {
 
      /* figure out how many lists we need to work with - this 
-        depends on the presence of discontinuities in the
-        density profile. */
+        depends on the presence of discontinuities in the density profile. */
 
+     Need_Lists=FALSE;
      Nlists_HW = 2;
-     if (Lhard_surf && Ipot_ff_n != IDEAL_GAS){ Nlists_HW = Ncomp + 1;
-/*        if (Ncomp > 1){*/    /* remove case where Ncomp>1 and lists are the same */
-           sigma_test = Sigma_ff[0][0];
-           flag = FALSE;
-           for (icomp=1; icomp<Ncomp; icomp++){
-               if (Sigma_ff[icomp][icomp] != sigma_test) flag = TRUE;
-           }
-           if (flag == TRUE) Nlists_HW = Ncomp + 1;
-        /*}*/
-     }
-
+     for (iwall_type=0; iwall_type<Nwall_type; iwall_type++) if (Ipot_wf_n[iwall_type]==VEXT_HARD) Need_Lists=TRUE;
+     if ( (Lhard_surf==TRUE && Ipot_ff_n != IDEAL_GAS) || (Lhard_surf==FALSE && Need_Lists==TRUE)) Nlists_HW = Ncomp + 1;
 
      /*
       * SET UP SOME ARRAYS 
       */
 
      elems_f = (int **) array_alloc (2, Nlists_HW, Nelements_box, sizeof(int));
-
      nelems_f = (int *) array_alloc (1, Nlists_HW, sizeof(int));
 
      fac_image=1;
@@ -407,8 +397,7 @@ void control_mesh(FILE *fpecho,char *output_file2,int print_flag, int *update)
          for (inode_box=0; inode_box<Nnodes_box; inode_box++) Index_wall_nodes[inode_box]=-1;
 
          setup_surface(fpecho,nelems_f, nelems_w_per_w, elems_f,
-                                   elems_w_per_w,elem_zones,
-                                   el_type);
+                                   elems_w_per_w,elem_zones, el_type);
 
          /* gather the elems_w_per_w array into a global list of wall elements on processor zero */
          /* first gather and sum the nelems_w_per_w on processor zero -- this gives a maximum possible number of wall elements */
@@ -612,6 +601,20 @@ void control_mesh(FILE *fpecho,char *output_file2,int print_flag, int *update)
      ierr = dft_linprobmgr_finalizeblockstructure(LinProbMgr_manager);
 
   }
+
+  /* finally a special case - need to modify Nodes_to_zone if we have zero walls, but we
+     are going to have a constant density zone in the calculation (like for drop or bubble) */
+     if (Mesh_coarsening == RHOSTEP_ZONE){
+        for (inode = 0; inode < Nnodes_box; inode++){
+           rsq=0.0;
+           node_to_position(B2G_node[inode_box],pos_xyz);
+           for (idim=0;idim<Ndim;idim++) rsq+=(pos_xyz[idim]-Origin_step[idim])*(pos_xyz[idim]-Origin_step[idim]);
+           dist_test=sqrt(rsq);
+                       /* indicator that this is in the RHOSTEP0 region - separate from Jacobian quadrature zones! */
+           if (dist_test <= Rmax_drop) Nodes_to_zone[inode] = Nzone+1; 
+        }
+     }
+
 
   if (Type_interface==DIFFUSIVE_INTERFACE && Ndim==1){
       Area_IC = (double *) array_alloc (1, Nnodes_box, sizeof(double));
@@ -986,6 +989,7 @@ void setup_zeroTF_and_Node2bound (FILE *fpecho,int ***el_type)
  Nodes_2_boundary_wall = (int **) array_alloc(2, Nlists_HW, Nnodes_box, sizeof(int));
  Zero_density_TF = (int **) array_alloc (2, Nnodes_box,Ncomp+1,sizeof(int));
 
+
  /* zero the arrays that will be set up here */
 
  for (idim=0; idim<Ndim; idim++) reflect_flag[idim] = FALSE;
@@ -997,7 +1001,7 @@ void setup_zeroTF_and_Node2bound (FILE *fpecho,int ***el_type)
     for (icomp=0; icomp<Ncomp; icomp++) {
             Zero_density_TF[inode_box][icomp] = FALSE;
     }
-    if (Lhard_surf) 
+    if (Lhard_surf || Need_Lists) 
        Zero_density_TF[inode_box][Nlists_HW-1] = FALSE;
  }
 
@@ -1157,7 +1161,7 @@ void setup_zeroTF_and_Node2bound (FILE *fpecho,int ***el_type)
      *  where all surrounding elements are wall elements. 
      */
 
-    if (Lhard_surf){
+    if (Lhard_surf ||Need_Lists){
        for (ilist=0; ilist<Nlists_HW; ilist++){
           if (Zero_density_TF[inode_box][ilist]){
 
@@ -1456,15 +1460,15 @@ void setup_zeroTF_and_Node2bound_new (FILE *fpecho,int ***el_type)
         ilist=List_wall_node[index][index_w];
 
         if (n_fluid_els[index_w] == 0){
-            if (Lhard_surf==TRUE){  /* Ncomp+1 lists and Ncomp+1 Zero_density_TF arrays */
+            if (Lhard_surf==TRUE || Need_Lists==TRUE){  /* Ncomp+1 lists and Ncomp+1 Zero_density_TF arrays */
                  Zero_density_TF[inode_box][ilist] = TRUE;
             }
             else{  /* only 2 lists, but Ncomp+1 Zero_density_TF arrays */
                  if (ilist==1) Zero_density_TF[inode_box][Ncomp] = TRUE;
                  else{ for (icomp=0; icomp<Ncomp; icomp++)  Zero_density_TF[inode_box][icomp] = TRUE; }
             }
-/*            if ( (Lhard_wall==TRUE && Nlists_HW == Ncomp+1) || (Lhard_wall==FALSE && ilist==2) || ilist==Ncomp) 
-Zero_density_TF[inode_box][ilist] = TRUE;
+/*            if ( ((Lhard_wall==TRUE||Need_Lists==TRUE) && Nlists_HW == Ncomp+1) || 
+                   ((Lhard_wall==FALSE &&Need_Lists==FALSE) && ilist==2) || ilist==Ncomp) Zero_density_TF[inode_box][ilist] = TRUE;
             else if (ilist == 0){
                  for (icomp=0; icomp<Ncomp; icomp++)  Zero_density_TF[inode_box][icomp] = TRUE; 
             }*/
@@ -1475,14 +1479,13 @@ Zero_density_TF[inode_box][ilist] = TRUE;
 
     }
 
-
     /*
      * for hard sphere cases, we need to double check for 1 sigma
      *  surface separations where the density is nonzero at a point
      *  where all surrounding elements are wall elements. 
      */
 /* turn this off */ turn_off=TRUE;
-    if (Lhard_surf && !turn_off){
+    if ((Lhard_surf ||Need_Lists) && !turn_off){
        for (ilist=0; ilist<Nlists_HW; ilist++){
           if (Zero_density_TF[inode_box][ilist]){
 
@@ -1944,7 +1947,7 @@ void boundary_properties(FILE *fpecho)
             /* check to see if this Wall-Fluid boundary node
                is _also_ a wall-wall boundary node !!!*/
 
-    if (Lhard_surf){
+    if (Lhard_surf ||Need_Lists){
 
               count = 0;
               for (loc_node_el=0; loc_node_el<Nnodes_per_el_V; loc_node_el++){
@@ -2401,7 +2404,7 @@ void setup_surface_charge(FILE *fpecho)
 
   ncharge_s=ncharge_v=0;
   for (iwall_type=0; iwall_type<Nwall_type; iwall_type++){
-       if (Type_bc_elec[iwall_type] == CONST_CHARGE) ncharge_s++;
+       if (Type_bc_elec[iwall_type] == CONST_CHARGE || Type_bc_elec[iwall_type] == CHARGE_REGULATED) ncharge_s++;
        else if (Type_bc_elec[iwall_type] ==ATOMIC_CHARGE) ncharge_v++;
   }
 
@@ -2420,14 +2423,14 @@ void setup_surface_charge(FILE *fpecho)
 
 
   for (iwall=0; iwall<Nwall; iwall++){
-     if (Type_bc_elec[WallType[iwall]] == CONST_CHARGE){
+     if (Type_bc_elec[WallType[iwall]] == CONST_CHARGE || Type_bc_elec[WallType[iwall]] == CHARGE_REGULATED){
 
         for (loc_inode=0; loc_inode<Nnodes_per_proc; loc_inode++){
            inode_box = L2B_node[loc_inode];
            iwall_test = Nodes_2_boundary_wall[Nlists_HW-1][inode_box];
 
            if (iwall_test == iwall){
-                bc_setup_const_charge(iwall,loc_inode);
+                bc_setup_const_charge(iwall,loc_inode); 
                 Surf_charge_flag=TRUE;
            }
         }
@@ -2462,7 +2465,7 @@ void setup_surface_charge(FILE *fpecho)
   for (loc_inode=0; loc_inode<Nnodes_per_proc; loc_inode++){
       charge_TF = FALSE;
       for (idim=0; idim<Ndim; idim++) 
-         if (Charge_w_sum_els[loc_inode][idim] > 0.0)charge_TF = TRUE;
+         if (fabs(Charge_w_sum_els[loc_inode][idim]) > 0.0)charge_TF = TRUE;
     
       if (charge_TF == TRUE) {
          inode = L2G_node[loc_inode];
@@ -2824,13 +2827,35 @@ void set_mesh_coarsen_flag(void)
                 Mesh_coarsen_flag[i] = FLAG_PBELEC;
                 if (B2L_node[i] >=0) List_coarse_nodes[count_coarse++]=B2G_node[i];  
          }
+         else if (Mesh_coarsening == RHOSTEP_ZONE){
+                Mesh_coarsen_flag[i] = FLAG_RHOSTEP_ZONE;
+                if (B2L_node[i] >=0) List_coarse_nodes[count_coarse++]=B2G_node[i];  
+         }
          else{
                       /* reset to negative flag if residual is not even to be set */
             coarse_fac = POW_INT(2,Nodes_to_zone[i]);
             if      (ijk[0]%coarse_fac) Mesh_coarsen_flag[i] = -1;
             else if (ijk[1]%coarse_fac) Mesh_coarsen_flag[i] = -2;
             else if (ijk[2]%coarse_fac) Mesh_coarsen_flag[i] = -3;
-            if (B2L_node[i] >=0) List_coarse_nodes[count_coarse++]=B2G_node[i]; 
+
+/*            if (Ndim==1){
+               if (ijk[0]%coarse_fac) Mesh_coarsen_flag[i] = -Nodes_to_zone[i];
+            } 
+            else if (Ndim==2){
+               if ((ijk[0]%coarse_fac && ijk[1]%coarse_fac) ||
+                   ((ijk[0]+Nodes_to_zone[i])%coarse_fac && (ijk[1]+Nodes_to_zone[i])%coarse_fac)) {
+                                      Mesh_coarsen_flag[i] = -Nodes_to_zone[i];
+               }
+            }
+            else if (Ndim==3){ 
+               if ((ijk[0]%coarse_fac && ijk[1]%coarse_fac && ijk[2]%coarse_fac) ||
+                   ((ijk[0]+Nodes_to_zone[i])%coarse_fac && 
+                    (ijk[1]+Nodes_to_zone[i])%coarse_fac && (ijk[2]+Nodes_to_zone[i])%coarse_fac)){
+                                      Mesh_coarsen_flag[i] = -Nodes_to_zone[i];
+               }
+            }
+*/
+            if (B2L_node[i] >=0 && Mesh_coarsen_flag[i]<0) List_coarse_nodes[count_coarse++]=B2G_node[i]; 
          }
       }
       if (L1D_bc==TRUE){

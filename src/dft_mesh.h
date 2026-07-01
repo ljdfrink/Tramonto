@@ -23,6 +23,7 @@ extern double Az_tolerance;
 extern double Az_ilut_fill_param;
 extern int Az_preconditioner;
 extern int Az_scaling;
+extern double Rmax_drop;
 #define AM_taucs     22
 #define AM_pardiso   21
 #define AM_superludist 20
@@ -35,6 +36,7 @@ extern int Az_solver;
 void MY_read_update(int *N_update,int *update[],int N,int *nodes_x,int chunk,int input_option);
 extern double *Lseg_IC;
 extern int Nseg_IC;
+extern int Need_Lists;
 extern double *Pore_rad_R_IC;
 extern double X_const_mu;
 #define OPTION_VARY  2
@@ -43,10 +45,13 @@ extern double *Pore_rad_L_IC;
 #define OPTION_CYL   1
 extern int Geom_flag;
 extern int Grad_dim;
-#define FLAG_PBELEC -777
-#define PB_ZONE      3 
-#define FLAG_BULK   -888
 #define BULK_ZONE    2 
+#define RHOSTEP_ZONE 3
+#define PB_ZONE      4 
+#define FLAG_PBELEC -777
+#define FLAG_BULK   -888
+#define FLAG_RHOSTEP_ZONE   -555
+
 void print_Nodes_to_zone(int *node_to_zone,char *Nodes2Zone_Filename);
 int ijk_box_to_node_box(int *ijk_box);
 extern int Nzone;
@@ -77,6 +82,7 @@ void bc_setup_const_charge(int iwall,int loc_inode);
 extern int Nlocal_charge;
 #define ATOMIC_CHARGE    3
 #define CONST_CHARGE     2
+#define CHARGE_REGULATED 4
 extern int Type_bc_elec[NWALL_MAX_TYPE];
 #define LAST_NODE_RESTART    4
 #define LAST_NODE            3
@@ -99,6 +105,7 @@ void setup_global_surfaces();
 extern int *RealWall_Images;
 extern int Link[NWALL_MAX];
 #define NDIM_MAX  3
+extern double Origin_step[NDIM_MAX];
 extern double WallPos[NDIM_MAX][NWALL_MAX];
 extern int **Link_list;
 extern int *Nwall_this_link;
@@ -261,6 +268,7 @@ extern double ***Xwall_delDOWN;
 extern double ***Xwall_delUP;
 extern double **X_wall;
 #define VEXT_DIST_TO_SURF          2  /* any potential that is a function of only distance from the surface */
+#define VEXT_HARD        1             /* a volume exclusion based external field */
 extern int Ipot_wf_n[NWALL_MAX_TYPE];
 extern int Nwall_type;
 extern int **Zero_density_TF;

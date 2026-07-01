@@ -34,6 +34,7 @@ extern struct Loca_Struct Loca;
 extern int Pos_new_nodes;
 extern int Plane_new_nodes;
 #define NWALL_MAX_TYPE 20 
+#define NREACT_MAX 10
 extern double Del_1[NWALL_MAX_TYPE];
 extern int Nruns;
 extern double Az_tolerance;
@@ -53,6 +54,7 @@ extern int ATTInA22Block;
 extern int Physics_scaling;
 extern int NL_Solver;
 extern int Max_NL_iter;
+extern int Niter_min_updates;
 #define NCOMP_MAX 6
 extern double Scale_fac_WJDC[NCOMP_MAX][NCOMP_MAX];
 extern double X_1D_bc;
@@ -80,7 +82,7 @@ extern int Restart_Vext;
 extern int Nmissing_densities;
 extern int Restart;
 #define NSTEPS_MAX 10
-extern double Rho_step[NCOMP_MAX][NSTEPS_MAX];
+extern double Rho_step[NSTEPS_MAX][NCOMP_MAX];
 extern double Xend_step[NSTEPS_MAX];
 extern double Xstart_step[NSTEPS_MAX];
 extern int Orientation_step[NSTEPS_MAX];
@@ -88,6 +90,7 @@ extern int Nsteps;
 #define CHOP_RHO_STEP    4
 #define CHOP_RHO         3
 #define STEP_PROFILE     2
+#define STEP_PROFILE_DROP     7
 extern double random_rho;
 extern int Iguess_fields;
 extern int Iguess;
@@ -125,6 +128,21 @@ extern double *Charge_Diam;
 extern double *Charge;
 extern int Nlocal_charge;
 extern int Type_bc_elec[NWALL_MAX_TYPE];
+extern int ChargeRegTF;
+extern int Nreact_perSurf[NWALL_MAX_TYPE];
+/*extern double Density_rxnSites[NWALL_MAX_TYPE]; */
+extern int Rxn_ID[NWALL_MAX_TYPE][NREACT_MAX];
+extern int Rxn_type[NWALL_MAX_TYPE];
+extern double Frac_reactSites[NWALL_MAX_TYPE][NREACT_MAX]; /* The fraction of sites associated with a certain reaction on a given surface */
+extern double pK_react[NWALL_MAX_TYPE][NREACT_MAX]; /* The equilibrium constant associated with each reaction at a given surface */
+extern double K_react[NWALL_MAX_TYPE][NREACT_MAX]; /* The equilibrium constant associated with each reaction at a given surface */
+extern double DeltaCharge_frwdRxn[NWALL_MAX_TYPE][NREACT_MAX]; /* The change in surface site charge for each reaction - defined in the forward direction */
+extern int N_fluidCompReact[NWALL_MAX_TYPE][NREACT_MAX]; /* The number of fluid components infolved in each reaction as reactants*/
+extern int N_fluidCompProd[NWALL_MAX_TYPE][NREACT_MAX]; /* The number of fluid components infolved in each reaction as products*/
+extern int ***Fluid_reactComp; /* The fluid components reacting with a surface in a given surface reaction as reactants */
+extern int ***Fluid_prodComp; /* The fluid components reacting with a surface in a given surface reaction as products */
+
+
 #define PAIR_COULOMB          2
 #define PAIR_COULOMB_CS       1
 extern double X_const_mu;
@@ -161,7 +179,7 @@ extern int Grafted[NCOMP_MAX];
 extern int Type_mer_to_Pol[NBLOCK_MAX];
 extern int Poly_to_Type[NCOMP_MAX][NBLOCK_MAX];
 extern int Poly_to_Ntype[NCOMP_MAX];
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Type_mer[NCOMP_MAX][NMER_MAX];
 extern int SegChain2SegAll[NCOMP_MAX][NMER_MAX];
 extern int Nmer_t_total[NBLOCK_MAX];
@@ -248,6 +266,7 @@ extern double WallParam_2[NWALL_MAX_TYPE];
 extern double WallParam[NWALL_MAX_TYPE];
 extern double Elec_param_w[NWALL_MAX];
 #define NDIM_MAX  3
+extern double Origin_step[NDIM_MAX];
 extern double WallPos[NDIM_MAX][NWALL_MAX];
 extern int Link[NWALL_MAX];
 extern int WallType[NWALL_MAX];

@@ -52,7 +52,8 @@ double omega_sum, omega_s_sum, omega_id, omega_id_b,omega_id_surf_ex,
        int icomp;
 
 
-  if (Ndim==1 && Iwrite_files!=FILES_BASIC){
+/*  if (Ndim==1 && Iwrite_files!=FILES_BASIC){*/
+  if (Iwrite_files!=FILES_BASIC){
     Integration_profile = (double *) array_alloc(1, Nnodes_per_proc, sizeof(double));
     for (loc_inode=0; loc_inode<Nnodes_per_proc; loc_inode++){
       Integration_profile[loc_inode]=0.0;
@@ -189,8 +190,8 @@ double omega_sum, omega_s_sum, omega_id, omega_id_b,omega_id_surf_ex,
              print_to_screen(omega_maxwell_stress,"MAXWELL STRESS TERM");
          }
          omega_sum += omega_maxwell_stress;
-         omega_s_sum += omega_maxwell_stress; 
-*/            
+         omega_s_sum += omega_maxwell_stress; */
+            
 
                 /* osmotic pressure contribution ...only for charged species */
 
@@ -215,16 +216,16 @@ double omega_sum, omega_s_sum, omega_id, omega_id_b,omega_id_surf_ex,
 
                 /* Reiner-Radke surface charge term */
 
-/*         omega_surface_charge=integrateOverSurface(&integrand_surface_charge,iunk,x,Integration_profile);
+ /*        omega_surface_charge=integrateOverSurface(&integrand_surface_charge,iunk,x,Integration_profile);
 
          if (Proc==0 && Iwrite_screen == SCREEN_VERBOSE){
                print_to_screen(omega_surface_charge,"SURFACE CHARGE TERM");
          }
          omega_sum += omega_surface_charge;
-         omega_s_sum += omega_surface_charge;
-*/
+         omega_s_sum += omega_surface_charge;*/
 
-                                    /* PSI-RHO TERM FROM TANG-DAVIS PAPER */
+
+                                    /* PSI-RHO TERM FROM TANG-DAVIS PAPER -- works for CC and CP cases!!!*/
          omega_psirho=integrateInSpace_SumInComp(&integrand_elec_PB_freen,Nel_hit2,x,Integration_profile);
          omega_psirho_surf_ex = omega_psirho; 
          if (Proc==0 && Iwrite_screen == SCREEN_VERBOSE){

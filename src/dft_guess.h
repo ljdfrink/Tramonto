@@ -89,6 +89,22 @@ extern int Phys2Nunk[NEQ_TYPE];
 #endif
 void translate_xInBox_to_xOwned(double **xInBox,double **xOwned);
 void guess_restart_from_files(int start_no_info,int guess_type,double **xInBox);
+#define NCOMP_MAX 6
+#define FLAG_BULK_LBB -886
+#define FLAG_BULK_RTF -887
+#define FLAG_BULK   -888
+#define FLAG_RHOSTEP_ZONE  -555
+#define BULK_ZONE    2
+#define UNIFORM_INTERFACE  0
+extern double Rho_b_RTF[NCOMP_MAX];
+extern double Rho_b_LBB[NCOMP_MAX];
+extern double Rho_b[NCOMP_MAX];
+extern int *Mesh_coarsen_flag;
+extern int *Nodes_to_zone;
+extern int Type_interface;
+extern int Mesh_coarsening;
+extern int Ncomp;
+void adjust_bulkzone_flags(double **xInBox);
 extern int Imain_loop;
 #define NORESTART          0
 extern int Restart;

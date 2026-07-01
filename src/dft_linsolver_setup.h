@@ -62,7 +62,7 @@ extern int *Pol_Sym;
 #define G_CHAIN       11 
 #define CMS_FIELD      7
 #define DENSITY        0
-#define NMER_MAX     200
+#define NMER_MAX     300
 extern int Unk2Phys[3 *NCOMP_MAX+2 *NMER_MAX+NMER_MAX *NMER_MAX+13];
 void *array_alloc(int numdim,...);
 void *array_alloc(int numdim,...);

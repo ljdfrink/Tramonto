@@ -113,6 +113,8 @@ extern "C" {
 #define NWALL_MAX 600 
 #define NWALL_MAX_TYPE 20 
 #define NPERIODIC_MAX 4
+#define NREACT_MAX 10 
+
 
 #define NBOND_MAX 4
 
@@ -402,6 +404,7 @@ extern "C" {
 #define CHOP_RHO         3
 #define CHOP_RHO_STEP    4
 #define LINEAR           5
+#define STEP_PROFILE_DROP     7
 #define RAND_RHO		 6  //LMH
 
 /*
@@ -505,6 +508,12 @@ extern "C" {
 #define CONST_POTENTIAL  1
 #define CONST_CHARGE     2
 #define ATOMIC_CHARGE    3
+#define CHARGE_REGULATED 4
+
+/* These are choices for reaction types at surfaces */
+#define CHARGEREG1_SURFDENS 0
+#define CHARGEREG1_POT      1
+#define CHARGEREG2_SURFDENS 2  /* Chan Model */
 
  /* The following is a choice for the load balance flag */
 #define LB_LINEAR    0
@@ -595,15 +604,19 @@ extern "C" {
 /* The following is a flag for 1D boundary conditions in a 2D or
     3D domain --- only set up for steady state problems now */
 #define FLAG_1DBC   -999
+#define FLAG_BULK_LBB -886
+#define FLAG_BULK_RTF -887
 #define FLAG_BULK   -888
+#define FLAG_RHOSTEP_ZONE  -555
 #define FLAG_PBELEC -777
 #define BULK_ZONE    2 
-#define PB_ZONE      3 
+#define RHOSTEP_ZONE 3
+#define PB_ZONE      4 
 
 /* Polymer constants */
 #define N_NZCR_MAX   200   /* maximum # of non-zero's in direct correlation fn */
 #define NBLOCK_MAX   20 
-#define NMER_MAX     200
+#define NMER_MAX     300
 
 /* options for reading external field */
 #define READ_VEXT_FALSE      0
@@ -950,41 +963,52 @@ extern double  Energy;   /* Surface free energy to return to Towhee */
 extern double  Betap;           /* Pressure in units of kT sigma_ff[1]^3           */
 extern double Betap_LBB;       /* Pressure calculated for LBB of domain */
 extern double Betap_RTF;       /* Pressure calculated for RTF of domain */
+extern double Betap_RHOSTEP0;       /* Pressure calculated for region of domain defined by Rho_step[0][icomp] */
 extern double  Betap_id;       /* Ideal gas Presseure in units of kT sigma_ff[1]^3   */
 extern double  Betap_att;      /* Attractive Presseure in units of kT sigma_ff[1]^3   */
 extern double  P_over_po;
 extern int     L_isotherm; /* Logical for isotherm vs. force per distance data */
 extern double  Rho_b[NCOMP_MAX];   /* Array[Ncomp] of component bulk densities      */
+extern double  Rho_b_RHOSTEP0[NCOMP_MAX];   /* Array[Ncomp] of component bulk densities      */
 extern double  Rho_t;
 extern double  Rhobar_b[10]; /* Array[Nrho_bar] of bulk rhobars      */
 extern double  Rhobar_b_LBB[10]; /* Array[Nrho_bar] of bulk rhobars LBB  */
 extern double  Rhobar_b_RTF[10]; /* Array[Nrho_bar] of bulk rhobars RTF  */
+extern double  Rhobar_b_RHOSTEP0[10]; /* Array[Nrho_bar] of bulk rhobars RTF  */
 extern double  Dphi_Drhobar_b[10]; /* Array[Nrho_bar] of bulk energy derivs w/r/to rhobars      */
 extern double  Dphi_Drhobar_LBB[10]; /* Array[Nrho_bar] of bulk energy derivs w/r/to rhobars LBB  */
 extern double  Dphi_Drhobar_RTF[10]; /* Array[Nrho_bar] of bulk energy derivs w/r/to rhobars RTF  */
+extern double Dphi_Drhobar_RHOSTEP0[10];
 extern double  Rho_seg_b[NMER_MAX]; /* array of bulk segment densities */
 extern double  Rho_seg_LBB[NMER_MAX];
 extern double  Rho_seg_RTF[NMER_MAX];
+extern double  Rho_seg_RHOSTEP0[NMER_MAX];
 extern double Field_WJDC_b[NMER_MAX];
 extern double Field_WJDC_LBB[NMER_MAX];
 extern double Field_WJDC_RTF[NMER_MAX];
+extern double Field_WJDC_RHOSTEP0[NMER_MAX];
 extern double Field_CMS_b[NMER_MAX];
 extern double Field_CMS_LBB[NMER_MAX];
 extern double Field_CMS_RTF[NMER_MAX];
+extern double Field_CMS_RHOSTEP0[NMER_MAX];
 extern double Scale_fac_WJDC[NCOMP_MAX][NCOMP_MAX];
 extern double G_WJDC_b[NMER_MAX*NBOND_MAX];
 extern double G_WJDC_LBB[NMER_MAX*NBOND_MAX];
 extern double G_WJDC_RTF[NMER_MAX*NBOND_MAX];
+extern double G_WJDC_RHOSTEP0[NMER_MAX*NBOND_MAX];
 extern double G_CMS_b[NMER_MAX*NBOND_MAX];
 extern double G_CMS_LBB[NMER_MAX*NBOND_MAX];
 extern double G_CMS_RTF[NMER_MAX*NBOND_MAX];
+extern double G_CMS_RHOSTEP0[NMER_MAX*NBOND_MAX];
 extern double  *Rhobar3_old;   /* Array[Nnodes_box] of old values of rhobar 3*/
 extern double Xi_cav_b[4]; /* Array of bulk rhobars for cavity functions of WTC polymer functionals */
 extern double Xi_cav_LBB[4]; /* Array of bulk rhobars for cavity functions of WTC polymer functionals */
 extern double Xi_cav_RTF[4]; /* Array of bulk rhobars for cavity functions of WTC polymer functionals */
+extern double Xi_cav_RHOSTEP0[4]; /* Array of bulk rhobars for cavity functions of WTC polymer functionals */
 extern double BondWTC_b[NMER_MAX*NMER_MAX]; /*Array of bulk rhobars for bonds in WTC functionals*/
 extern double BondWTC_LBB[NMER_MAX*NMER_MAX]; /*Array of bulk rhobars for bonds in WTC functionals*/
 extern double BondWTC_RTF[NMER_MAX*NMER_MAX]; /*Array of bulk rhobars for bonds in WTC functionals*/
+extern double BondWTC_RHOSTEP0[NMER_MAX*NMER_MAX]; /*Array of bulk rhobars for bonds in WTC functionals*/
 extern double  Rho_coex[2];   /* Liquid and Vapor Coexisting Densities         */
 extern double  Betamu_hs_ex[NCOMP_MAX];/* Array of excess hardsphere chemical potentials*/
 extern double  Betamu[NCOMP_MAX];   /* Array[Ncomp] of chemical potentials*/
@@ -992,13 +1016,16 @@ extern double  Betamu_id[NCOMP_MAX];   /* Array[Ncomp] of ideal gas chemical pot
 extern double  Betamu_wtc[NMER_MAX];
 extern double  Betamu_wtc_LBB[NMER_MAX];
 extern double  Betamu_wtc_RTF[NMER_MAX];
+extern double  Betamu_wtc_RHOSTEP0[NMER_MAX];
 extern double  Betamu_chain[NMER_MAX];
 extern double  Betamu_chain_LBB[NMER_MAX];
 extern double  Betamu_chain_RTF[NMER_MAX];
+extern double  Betamu_chain_RHOSTEP0[NMER_MAX];
 extern double  Betamu_ex_bondTC[NCOMP_MAX][NMER_MAX*NMER_MAX];/* Array of excess segment chemical potentials - WTC poolymer*/
 extern double  Betamu_seg[NMER_MAX];/* Array of excess segment chemical potentials - WTC poolymer*/
 extern double  Betamu_seg_LBB[NMER_MAX];/* Array of excess segment chemical potentials - WTC poolymer*/
 extern double  Betamu_seg_RTF[NMER_MAX];/* Array of excess segment chemical potentials - WTC poolymer*/
+extern double  Betamu_seg_RHOSTEP0[NMER_MAX];/* Array of excess segment chemical potentials - WTC poolymer*/
 extern int     Ipot_ff_n;    /* Potential Type for neutral part of f-f interactions */
 extern int     Ipot_wf_n[NWALL_MAX_TYPE];    /* Potential Type for neutral part of w-f interactions */
 extern int     Type_pairPot;  /* Interaction potential to use for strict mean field DFT calculations*/
@@ -1016,9 +1043,10 @@ extern int     Iguess_fields;        /* Type of initial guess */
 extern double  random_rho;			/*Amount of randomness to add to rho for random initial guess LMH*/
 extern int     Nsteps;         /* Number of steps for a step profile initial guess */
 extern int     Orientation_step[NSTEPS_MAX]; /* orientation of the step profile */
+extern double  Origin_step[NDIM_MAX]; /* origin of the step profile */
 extern double  Xstart_step[NSTEPS_MAX];  /* start position array for the step profile */
 extern double  Xend_step[NSTEPS_MAX];  /* end position array for the step profile */
-extern double  Rho_step[NCOMP_MAX][NSTEPS_MAX];  /* density array for a step profile */
+extern double  Rho_step[NSTEPS_MAX][NCOMP_MAX];  /* density array for a step profile */
 extern int     Lbinodal;        /* Logical TF for binodal calculation */
 extern double  Thickness;    /* Thickness parameter for doing wetting studies */
 extern int     Mix_type;  /* Choice of Mixing Rules */
@@ -1086,6 +1114,21 @@ extern double  **Charge_w_sum_els; /*Array[Nnodes_b][Ndim] of surface charge per
 extern double  *Charge_vol_els; /*Array[Nelemts_box] of volume charge per element */
 extern int     Vol_charge_flag; /* Flag for volumetric charges */
 extern int     Surf_charge_flag; /* Flag for volumetric charges */
+
+extern int ChargeRegTF; /* set to true if there are any charge regulated surfaces */
+extern int Nreact_perSurf[NWALL_MAX_TYPE]; /* number of reactions occuring at each surface - by type */
+extern double Density_rxnSites[NWALL_MAX_TYPE]; /* number of reactions occuring at each surface - by type */
+extern int Rxn_ID[NWALL_MAX_TYPE][NREACT_MAX]; /* IDs for all reactions to allow indexing starting at 0 for each surface type */
+extern int Rxn_type[NWALL_MAX_TYPE][NREACT_MAX]; /* IDs for all reactions to allow indexing starting at 0 for each surface type */
+extern double Frac_reactSites[NWALL_MAX_TYPE][NREACT_MAX]; /* The fraction of sites associated with a certain reaction on a given surface */
+extern double K_react[NWALL_MAX_TYPE][NREACT_MAX]; /* The equilibrium constant associated with each reaction at a given surface */
+extern double DeltaCharge_frwdRxn[NWALL_MAX_TYPE][NREACT_MAX]; /* The change in surface site charge for each reaction - defined in the forward direction */
+extern int N_fluidCompReact[NWALL_MAX_TYPE][NREACT_MAX]; /* The number of fluid components involved in each reaction */
+extern int N_fluidCompProd[NWALL_MAX_TYPE][NREACT_MAX]; /* The number of fluid components involved in each reaction */
+extern int ***Fluid_reactComp; /* The fluid components reacting with a surface in a given surface reaction */
+extern int ***Fluid_prodComp; /* The fluid components reacting with a surface in a given surface reaction */
+
+
 extern int     **Nelems_S; /* Array[Nlists_HW][Nnode_per_proc] of # surf elems the b.node touches*/
 extern int     ***Surf_normal; /*Array[Nlists][Nnodes_per_proc][Nelems_S] of unit normal vectors */
 extern int     ***Surf_elem_to_wall; /*Array of wall to which a given surface element belongs...
@@ -1126,6 +1169,7 @@ extern double Elec_pot_RTF;           /*Electric potential boundary condition RT
 extern int    Flag_mV_elecpot;         /* TF logical for units entry for electrostatic potential boundary conditions */
 extern double Betamu_LBB[NCOMP_MAX];  /*Chemical Potential Boundary Condition LBB */
 extern double Betamu_RTF[NCOMP_MAX];  /*Chemical Potential Boudary Condition RTF*/
+extern double Betamu_RHOSTEP0[NCOMP_MAX];  /*Chemical Potential Boudary region of constant density defined by Rho_step[0][icomp]*/
 extern double D_coef[NCOMP_MAX];  /*Diffusion Coefficients for ion species */
 extern double *Pore_rad_L_IC;    /* array of left  Radii of ion chan pore segments (1D) */
 extern double *Pore_rad_R_IC;    /* array of right Radii of ion chan pore segments(1D) */
@@ -1195,6 +1239,7 @@ extern double NL_abs_tol,NL_rel_tol; /* Convergence tolerances (update_soln)*/
 extern double NL_abs_tol_picard,NL_rel_tol_picard; /* Convergence tolerances (update_soln) --- may be different than newton tolerances*/
 extern double NL_update_scalingParam; /* Minimum fraction to update solution to slow down
                            Newton's method */
+extern int Niter_min_updates;
 
 /* Timers */
 extern double Time_linsolver_first;
