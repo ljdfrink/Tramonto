@@ -184,7 +184,7 @@ void setup_params_for_dft(char *input_file, char *file_echoinput)
         else         Flag_mV_elecpot=FALSE;
         
         strcpy(tmp_string_array,Runpath_array);
-        sprintf(wallPos_file_array, strcat(tmp_string_array,"dft_surfaces.dat"));
+	sprintf(wallPos_file_array, "%s", strcat(tmp_string_array,"dft_surfaces.dat"));
         WallPos_file_name=wallPos_file_array;
 
         if (Restart != NORESTART) {

@@ -88,12 +88,18 @@ function(add_application_test _test_name)
     endif()
   endforeach()
 
-  # Configure the driver script.
+  # Configure the driver script, then run it through file(GENERATE) so that
+  # generator expressions (e.g. $<TARGET_FILE:...>) embedded in the
+  # command lists get resolved to real paths.
+  set(_test_driver_file_configured ${_application_test_WORKING_DIRECTORY}/TEST-${_test_name}.cmake.configured)
   set(_test_driver_file ${_application_test_WORKING_DIRECTORY}/TEST-${_test_name}.cmake)
   configure_file(
     ${_add_application_test_dir}/ApplicationTest.cmake.in
-    ${_test_driver_file}
+    ${_test_driver_file_configured}
     @ONLY)
+  file(GENERATE
+    OUTPUT ${_test_driver_file}
+    INPUT ${_test_driver_file_configured})
   
   # Add the test that runs the driver.
   add_test(NAME ${_test_name}

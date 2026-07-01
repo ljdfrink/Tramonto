@@ -80,12 +80,12 @@ function(Tramonto_add_test _test_name)
   endif()
 
   # Add the test that runs the example.
-  get_property(_dft_exec_location TARGET dft_exec PROPERTY LOCATION)
+  set(_dft_exec_location "$<TARGET_FILE:dft_exec>")
   set(_command
     ${MPIEXEC} 
     ${MPIEXEC_NUMPROC_FLAG} ${TEST_HARNESS_PROCESSES}
     ${MPIEXEC_PREFLAGS} ${_dft_exec_location} ${MPIEXEC_POSTFLAGS})
-  get_property(_check_results_location TARGET check_results PROPERTY LOCATION)
+  set(_check_results_location "$<TARGET_FILE:check_results>")
   set(_postprocess
     ${_check_results_location} README dft_output.dat ${Tramonto_TEST_HARNESS_FAIL_TOLERANCE} ${Tramonto_TEST_HARNESS_ITERATION_BOUND})
   

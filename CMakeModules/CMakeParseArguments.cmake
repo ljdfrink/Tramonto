@@ -78,12 +78,19 @@ if(__CMAKE_PARSE_ARGUMENTS_INCLUDED)
 endif()
 set(__CMAKE_PARSE_ARGUMENTS_INCLUDED TRUE)
 
-# This file was copied from CMake 2.8.5 for backwards compatibility with older
-# CMake versions. Because of this, we need to set a policy to quiet a CMake
-# warning.  For more information run cmake --help-policy CMP0017
-if(${CMAKE_VERSION} VERSION_GREATER "2.8.3")
-  cmake_policy(SET CMP0017 OLD)
-  cmake_policy(SET CMP0011 NEW)
+# This file was originally copied from CMake 2.8.5 for backwards compatibility
+# with older CMake versions. cmake_parse_arguments() has been a built-in
+# CMake command since version 3.5, so on modern CMake we simply skip defining
+# our own copy and let the built-in command handle it. The old CMP0017
+# workaround is no longer needed (and CMP0017 can no longer be set to OLD in
+# CMake 4.0+).
+if(CMAKE_VERSION VERSION_LESS "3.5")
+  if(${CMAKE_VERSION} VERSION_GREATER "2.8.3")
+    cmake_policy(SET CMP0017 OLD)
+    cmake_policy(SET CMP0011 NEW)
+  endif()
+else()
+  return()
 endif()
 
 

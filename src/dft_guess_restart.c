@@ -53,8 +53,8 @@ void guess_restart_from_files(int start_no_info,int guess_type,double **xInBox)
                                     continuation run, all of the _old variables
                                     were set in collect_xold (dft_output.c) */
 
-         if (Lbinodal && guess_type==BINODAL_FLAG) sprintf(filename,DensityFile2);
-         else                                  sprintf(filename,DensityFile);
+         if (Lbinodal && guess_type==BINODAL_FLAG) sprintf(filename,"%s",DensityFile2);
+         else                                  sprintf(filename,"%s",DensityFile);
 
          Nodes_old = find_length_of_file(filename);
 

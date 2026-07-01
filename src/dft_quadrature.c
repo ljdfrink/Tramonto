@@ -443,7 +443,12 @@ int  get_integration_pts(int isten, int izone,
          return(-1);break;
     }
   }
-
+  else{
+    if (Iwrite_screen != SCREEN_NONE)
+       printf("%s: get_integration_pts called with unsupported isten value: %d\n", yo, isten);
+    exit(-1);
+    return(-1);  /* unreachable, but satisfies the compiler */
+  }
 }
 
 /****************************************************************************/

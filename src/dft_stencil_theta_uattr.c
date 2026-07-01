@@ -154,6 +154,10 @@ double StenTheta_uattr_GetWeightFromSten(int icomp, int jcomp, double rsq,
          weight = pairPot_ATT_CS_switch(rho, icomp, jcomp,Type_pairPot);
          return(weight);
          break;
+      default:
+         printf("dft_stencil_theta_uattr: Unsupported Ndim value: %d\n", Ndim);
+         exit(-1);
+         return(0.0);  /* unreachable, but satisfies the compiler */
   }
 }
 /*********************************************************************/

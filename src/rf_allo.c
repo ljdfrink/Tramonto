@@ -273,7 +273,7 @@ static void * smalloc(size_t n)
 
   pntr = NULL;
   if (n < 0) {
-    fprintf(stderr, "smalloc ERROR: Non-positive argument. (%d)\n", n);
+    fprintf(stderr, "smalloc ERROR: Non-positive argument. (%zu)\n", n);
     exit(EXIT_FAILURE);
   }
   else {
@@ -285,7 +285,7 @@ static void * smalloc(size_t n)
 
   if (pntr == NULL && n != 0) {
     fprintf(stderr, "smalloc (Proc = %d): Out of space - number of bytes "
-            "requested = %u\n", Proc, n);
+            "requested = %zu\n", Proc, n);
     exit(EXIT_FAILURE);
   }
 
