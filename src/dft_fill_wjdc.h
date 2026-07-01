@@ -26,7 +26,7 @@ extern int Proc;
 extern int Grafted_SegID[NCOMP_MAX];
 extern int ***Bonds;
 extern int *B2G_node_extra;
-int *B2L_node;
+/*int *B2L_node;*/
 extern double **GsumPrefac_XiDerivs;
 extern int **Index_UnkB_Gsum;
 extern int **Index_SurfNodes_Gsum;
